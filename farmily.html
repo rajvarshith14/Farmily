@@ -1,0 +1,4221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Farmily - Farmer's Digital Companion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Potato+Sans&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Custom styles for farmer-friendly UI */
+    .farmer-card {
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4efe9 100%);
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;8
+    }
+    .farmer-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+    }
+    .voice-btn {
+      background: linear-gradient(135deg, #FFA500 0%, #FF6347 100%);
+      box-shadow: 0 4px 8px rgba(255,165,0,0.3);
+    }
+    .voice-btn:active {
+      transform: scale(0.95);
+    }
+    .crop-story {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border-left: 4px solid #38a169;
+    }
+    .emergency-btn {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(220, 38, 38, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+    }
+    /* Loading spinner */
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-['Poppins']">
+  <!-- Emergency SOS Button (Fixed) -->
+  <div class="fixed bottom-24 right-4 z-50">
+    <button onclick="showEmergencyOptions()" class="emergency-btn bg-red-600 text-white p-4 rounded-full shadow-lg">
+      <i class="fas fa-exclamation-triangle text-xl"></i>
+    </button>
+  </div>
+
+  <!-- Header with Farmer Profile -->
+  <header class="bg-gradient-to-r from-green-700 to-green-600 p-4 flex items-center justify-between shadow-md">
+    <div class="flex items-center space-x-3">
+      <div class="relative">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Farmer" class="w-12 h-12 rounded-full border-2 border-white">
+        <span class="absolute bottom-0 right-0 bg-yellow-400 text-xs font-bold px-1 rounded-full">PRO</span>
+      </div>
+      <div class="text-white">
+        <div class="font-bold">Raj varshith</div>
+        <div class="text-xs flex items-center">
+          <i class="fas fa-location-dot mr-1"></i> Mehdipatnam, Telangana
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-white text-3xl font-extrabold" style="font-family: 'Pacifico', cursive;">Farmily</div>
+
+    <!-- Language & Voice Assistant -->
+    <div class="flex items-center space-x-3">
+      <button onclick="startVoiceAssistant()" class="voice-btn text-white p-2 rounded-full">
+        <i class="fas fa-microphone"></i>
+      </button>
+      <select id="languageSwitcher" onchange="setLanguage(this.value)" class="bg-white text-green-800 rounded-lg px-2 py-1 text-sm">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+        <option value="ta">தமிழ்</option>
+        <option value="te">తెలుగు</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- Weather & Market Status Bar -->
+  <div class="bg-white p-3 flex justify-between items-center shadow-sm">
+    <div class="flex items-center space-x-2 text-green-700">
+      <i class="fas fa-cloud-sun text-xl"></i>
+      <div>
+        <div class="font-bold" id="currentTemp">28°C</div>
+        <div class="text-xs" id="weatherCondition">Partly Cloudy</div>
+      </div>
+    </div>
+    <div class="text-center">
+      <div class="text-xs text-gray-500">Today's Market</div>
+      <div class="font-bold text-green-700 flex items-center justify-center">
+        <i class="fas fa-arrow-up text-red-500 mr-1"></i> <span id="topCropPrice">Tomato ₹120/kg</span>
+      </div>
+    </div>
+    <div class="flex items-center space-x-2 text-blue-600">
+      <i class="fas fa-rupee-sign text-xl"></i>
+      <div>
+        <div class="font-bold" id="monthlyEarnings">₹8,240</div>
+        <div class="text-xs">This Month</div>
+      </div>
+    </div>
+  </div>
+
+    <!-- AI Fair Price Banner -->
+  <div class="bg-gradient-to-r from-orange-400 to-orange-500 p-4 mx-4 my-3 rounded-xl shadow-lg flex items-center">
+    <div class="bg-white bg-opacity-20 p-2 rounded-full mr-3">
+      <i class="fas fa-brain text-white text-xl"></i>
+    </div>
+    <div class="text-white">
+      <div class="font-bold">AI Suggested Fair Price</div>
+      <div id="aiPriceSuggestion">Your tomatoes could get ₹135/kg (22% more)</div>
+    </div>
+    <button onclick="openSellNow()" class="ml-auto bg-white text-orange-600 px-3 py-1 rounded-full text-sm font-bold">Sell Now</button>
+  </div>
+
+  <!-- Voice Command Help -->
+  <div id="voiceHelp" class="hidden bg-yellow-50 border-l-4 border-yellow-400 p-3 mx-4 my-2">
+    <div class="flex justify-between items-center">
+      <div class="text-yellow-800">
+        <div class="font-bold">Try saying:</div>
+        <div>"What's the price of tomato today?"</div>
+        <div>"Show me buyers for paddy"</div>
+      </div>
+      <button onclick="hideVoiceHelp()" class="text-yellow-600">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Features Grid -->
+  <div class="p-4">
+    <h2 class="text-xl font-bold mb-3 text-gray-800 flex items-center" aria-label="tools title">
+      <i class="fas fa-tools text-green-600 mr-2"></i> Farmer's Toolkit
+    </h2>
+    <div class="grid grid-cols-4 gap-3">
+      <!-- AI Price Advisor -->
+      <div onclick="openAIPriceAdvisor()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+        <div class="bg-green-100 p-3 rounded-full mb-2">
+          <i class="fas fa-robot text-green-600 text-xl"></i>
+        </div>
+        <span class="text-xs font-semibold text-center">AI Price Advisor</span>
+      </div>
+      
+      <!-- Crop Doctor -->
+      <div onclick="openCropDoctor()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+        <div class="bg-blue-100 p-3 rounded-full mb-2">
+          <i class="fas fa-leaf text-blue-600 text-xl"></i>
+        </div>
+        <span class="text-xs font-semibold text-center">Crop Doctor</span>
+      </div>
+      
+      <!-- Government Schemes -->
+      <div onclick="checkSchemes()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+        <div class="bg-purple-100 p-3 rounded-full mb-2">
+          <i class="fas fa-landmark text-purple-600 text-xl"></i>
+        </div>
+        <span class="text-xs font-semibold text-center">Govt Schemes</span>
+      </div>
+      
+      <!-- Weather Forecast -->
+      <div onclick="openWeatherForecast()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+        <div class="bg-teal-100 p-3 rounded-full mb-2">
+          <i class="fas fa-cloud-sun-rain text-teal-600 text-xl"></i>
+        </div>
+        <span class="text-xs font-semibold text-center">Weather</span>
+      </div>
+      
+      <!-- Mandi Prices -->
+      <div onclick="openMandiPrices()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+        <div class="bg-amber-100 p-3 rounded-full mb-2">
+          <i class="fas fa-balance-scale text-amber-600 text-xl"></i>
+        </div>
+        <span class="text-xs font-semibold text-center">Mandi Prices</span>
+      </div>
+      
+      <!-- Crop Care -->
+      <div onclick="openCropCare()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+        <div class="bg-emerald-100 p-3 rounded-full mb-2">
+          <i class="fas fa-seedling text-emerald-600 text-xl"></i>
+        </div>
+        <span class="text-xs font-semibold text-center">Crop Care</span>
+      </div>
+      
+      <!-- Fertilizer Calc -->
+      <div onclick="openFertilizerCalculator()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+        <div class="bg-cyan-100 p-3 rounded-full mb-2">
+          <i class="fas fa-calculator text-cyan-600 text-xl"></i>
+        </div>
+        <span class="text-xs font-semibold text-center">Fertilizer Calc</span>
+      </div>
+      
+      <!-- More Tools -->
+      <div onclick="showMoreTools()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+        <div class="bg-gray-100 p-3 rounded-full mb-2">
+          <i class="fas fa-ellipsis-h text-gray-600 text-xl"></i>
+        </div>
+        <span class="text-xs font-semibold text-center">More Tools</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Crop Story Section -->
+  <div class="p-4">
+    <h2 class="text-xl font-bold mb-3 text-gray-800 flex items-center">
+      <i class="fas fa-book-open text-green-600 mr-2"></i> Crop Stories
+    </h2>
+    <div id="cropStoriesContainer">
+      <div class="crop-story p-3 rounded-lg mb-3">
+        <div class="flex items-center mb-2">
+          <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-8 h-8 rounded-full mr-2">
+          <div>
+            <div class="font-bold text-sm">Suresh Reddy</div>
+            <div class="text-xs text-gray-500">Organic Tomato Farmer</div>
+          </div>
+        </div>
+        <p class="text-sm mb-2">"This season I used neem oil instead of chemical pesticides. My yield was 15% less but got 40% higher price from health-conscious buyers."</p>
+        <div class="flex justify-between text-xs text-gray-500">
+          <span><i class="fas fa-map-marker-alt mr-1"></i> Medak, Telangana</span>
+          <span><i class="fas fa-calendar-alt mr-1"></i> Harvested: 15 May 2023</span>
+        </div>
+      </div>
+    </div>
+    <button onclick="openShareStoryModal()" class="w-full bg-green-50 text-green-700 py-2 rounded-lg text-sm font-bold">
+      <i class="fas fa-plus-circle mr-1"></i> Share Your Crop Story
+    </button>
+  </div>
+
+  <!-- Live Mandi Prices Section -->
+  <div class="p-4">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-xl font-bold text-gray-800 flex items-center" aria-label="market title">
+        <i class="fas fa-chart-line text-green-600 mr-2"></i> Live Mandi Prices
+      </h2>
+      <button onclick="openMandiPrices()" class="text-green-600 text-sm font-bold">View All</button>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div class="grid grid-cols-4 bg-green-700 text-white text-xs font-bold p-2">
+        <div>Crop</div>
+        <div>Market</div>
+        <div>Min Price</div>
+        <div>Max Price</div>
+      </div>
+      
+      <div class="divide-y divide-gray-100" id="mandiPricesContainer">
+        <div class="grid grid-cols-4 p-2 text-sm">
+          <div class="font-medium flex items-center">
+            <img src="https://cdn-icons-png.flaticon.com/512/574/574497.png" class="w-5 h-5 mr-2"> Tomato
+          </div>
+          <div>Nalgonda</div>
+          <div>₹110/kg</div>
+          <div class="text-green-600 font-bold">₹135/kg</div>
+        </div>
+        
+        <div class="grid grid-cols-4 p-2 text-sm">
+          <div class="font-medium flex items-center">
+            <img src="https://cdn-icons-png.flaticon.com/512/2909/2909761.png" class="w-5 h-5 mr-2"> Paddy
+          </div>
+          <div>Warangal</div>
+          <div>₹1,850/q</div>
+          <div class="text-green-600 font-bold">₹2,100/q</div>
+        </div>
+        
+        <div class="grid grid-cols-4 p-2 text-sm">
+          <div class="font-medium flex items-center">
+            <img src="https://cdn-icons-png.flaticon.com/512/415/415733.png" class="w-5 h-5 mr-2"> Cotton
+          </div>
+          <div>Adilabad</div>
+          <div>₹5,750/q</div>
+          <div class="text-green-600 font-bold">₹6,300/q</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Buyers Section -->
+  <div class="p-4 pb-24">
+    <h2 class="text-xl font-bold mb-3 text-gray-800 flex items-center" aria-label="buyers title">
+      <i class="fas fa-users text-green-600 mr-2"></i> Buyers Nearby
+    </h2>
+    
+    <div class="space-y-3" id="buyersContainer">
+      <div class="farmer-card p-3 flex items-center">
+        <img src="https://randomuser.me/api/portraits/women/43.jpg" class="w-12 h-12 rounded-full mr-3">
+        <div class="flex-1">
+          <div class="font-bold">Green Valley Stores</div>
+          <div class="text-sm text-gray-600">Buying: Tomato, Onion, Potato</div>
+          <div class="text-xs text-green-600 mt-1">
+            <i class="fas fa-map-marker-alt mr-1"></i> 12km away | 5 purchases this week
+          </div>
+        </div>
+        <button onclick="contactBuyer('Green Valley Stores')" class="bg-green-600 text-white px-3 py-1 rounded-full text-sm">
+          Contact
+        </button>
+      </div>
+      
+      <div class="farmer-card p-3 flex items-center">
+        <img src="https://randomuser.me/api/portraits/men/65.jpg" class="w-12 h-12 rounded-full mr-3">
+        <div class="flex-1">
+          <div class="font-bold">Fresh Daily Mart</div>
+          <div class="text-sm text-gray-600">Buying: Mango, Banana, Grapes</div>
+          <div class="text-xs text-green-600 mt-1">
+            <i class="fas fa-map-marker-alt mr-1"></i> 8km away | 22 purchases this week
+          </div>
+        </div>
+        <button onclick="contactBuyer('Fresh Daily Mart')" class="bg-green-600 text-white px-3 py-1 rounded-full text-sm">
+          Contact
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+<!-- Add this to your HTML body (replace the existing nav if needed) -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-2 shadow-lg">
+  <a href="#" class="flex flex-col items-center text-green-600">
+    <i class="fas fa-home text-xl"></i>
+    <span class="text-xs mt-1">Home</span>
+  </a>
+  <a href="#" onclick="openMarketPage(event)" class="flex flex-col items-center text-gray-500">
+    <i class="fas fa-store text-xl"></i>
+    <span class="text-xs mt-1">Market</span>
+  </a>
+    <!-- Replace your existing Sell button in the bottom nav with this -->
+  <a href="#" onclick="openSellNow(event)" class="flex flex-col items-center text-gray-500">
+    <div class="bg-green-600 text-white p-2 rounded-full -mt-6 shadow-lg">
+      <i class="fas fa-rupee-sign text-xl"></i>
+    </div>
+    <span class="text-xs mt-2">Sell</span>
+  </a>
+    <!-- Replace your existing Learn tab navigation with this -->
+  <a href="#" onclick="openEducationPage(event)" class="flex flex-col items-center text-gray-500">
+    <i class="fas fa-graduation-cap text-xl"></i>
+    <span class="text-xs mt-1">Learn</span>
+  </a>
+  <a href="#" onclick="openProfilePage(event)" class="flex flex-col items-center text-gray-500">
+    <i class="fas fa-user text-xl"></i>
+    <span class="text-xs mt-1">Profile</span>
+  </a>
+</nav>
+
+<!-- Shopping Cart Indicator (Fixed) -->
+<div class="fixed bottom-24 left-4 z-50">
+  <button onclick="openCart()" class="bg-green-600 text-white p-3 rounded-full shadow-lg flex items-center">
+    <i class="fas fa-shopping-cart text-xl"></i>
+    <span id="cartCount" class="ml-1 bg-white text-green-600 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">0</span>
+  </button>
+</div>
+
+  <!-- Language Translation Script -->
+  <script>
+    // Current user data
+    const userData = {
+      name: "Raj Varshith",
+      location: "Nalgonda, Telangana",
+      crops: ["Tomato", "Paddy", "Cotton"],
+      monthlyEarnings: 8240,
+      preferredLanguage: localStorage.getItem('preferredLang') || 'en'
+    };
+
+    // Market data
+    const marketData = {
+      crops: {
+        Tomato: { min: 110, max: 135, unit: "kg" },
+        Paddy: { min: 1850, max: 2100, unit: "q" },
+        Cotton: { min: 5750, max: 6300, unit: "q" },
+        Chilli: { min: 120, max: 150, unit: "kg" }
+      },
+      buyers: [
+        {
+          name: "Green Valley Stores",
+          buying: ["Tomato", "Onion", "Potato"],
+          distance: "12km",
+          purchases: 5,
+          image: "https://randomuser.me/api/portraits/women/43.jpg"
+        },
+        {
+          name: "Fresh Daily Mart",
+          buying: ["Mango", "Banana", "Grapes"],
+          distance: "8km",
+          purchases: 22,
+          image: "https://randomuser.me/api/portraits/men/65.jpg"
+        }
+      ]
+    };
+
+    // Weather data
+    const weatherData = {
+      temperature: 28,
+      condition: "Partly Cloudy",
+      forecast: [
+        { day: "Today", high: 28, low: 22, condition: "Partly Cloudy" },
+        { day: "Tomorrow", high: 30, low: 23, condition: "Sunny" },
+        { day: "Wed", high: 31, low: 24, condition: "Sunny" },
+        { day: "Thu", high: 29, low: 23, condition: "Partly Cloudy" },
+        { day: "Fri", high: 27, low: 22, condition: "Rain" }
+      ]
+    };
+
+    // Government schemes
+    const schemesData = [
+      {
+        name: "PM-KISAN",
+        description: "₹6,000/year income support",
+        status: "Eligible",
+        link: "https://pmkisan.gov.in/"
+      },
+      {
+        name: "Soil Health Card",
+        description: "Free soil testing",
+        status: "Eligible",
+        link: "https://soilhealth.dac.gov.in/"
+      },
+      {
+        name: "Crop Insurance",
+        description: "Premium subsidy available",
+        status: "Check eligibility",
+        link: "https://pmfby.gov.in/"
+      }
+    ];
+
+    // Crop stories
+    const cropStories = [
+      {
+        name: "Suresh Reddy",
+        role: "Organic Tomato Farmer",
+        story: "This season I used neem oil instead of chemical pesticides. My yield was 15% less but got 40% higher price from health-conscious buyers.",
+        location: "Medak, Telangana",
+        date: "15 May 2023",
+        image: "https://randomuser.me/api/portraits/men/32.jpg"
+      },
+      {
+        name: "Priya Patel",
+        role: "Cotton Farmer",
+        story: "Switched to drip irrigation and saved 30% water while increasing yield by 10%. The initial investment paid off in two seasons.",
+        location: "Adilabad, Telangana",
+        date: "22 April 2023",
+        image: "https://randomuser.me/api/portraits/women/44.jpg"
+      }
+    ];
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      updateWeatherDisplay();
+      updateMarketData();
+      updateBuyersList();
+      updateCropStories();
+      setLanguage(userData.preferredLanguage);
+    });
+
+    function updateWeatherDisplay() {
+      document.getElementById('currentTemp').textContent = `${weatherData.temperature}°C`;
+      document.getElementById('weatherCondition').textContent = weatherData.condition;
+    }
+
+    function updateMarketData() {
+      const topCrop = Object.keys(marketData.crops)[0];
+      const cropData = marketData.crops[topCrop];
+      document.getElementById('topCropPrice').textContent = `${topCrop} ₹${cropData.max}/${cropData.unit}`;
+      
+      // Update AI price suggestion based on user's crops
+      if (userData.crops.includes("Tomato")) {
+        document.getElementById('aiPriceSuggestion').textContent = "Your tomatoes could get ₹135/kg (22% more)";
+      } else if (userData.crops.includes("Paddy")) {
+        document.getElementById('aiPriceSuggestion').textContent = "Your paddy could get ₹2,100/q (13% more)";
+      }
+    }
+
+    function updateBuyersList() {
+      const buyersContainer = document.getElementById('buyersContainer');
+      buyersContainer.innerHTML = '';
+      
+      marketData.buyers.forEach(buyer => {
+        const buyerElement = document.createElement('div');
+        buyerElement.className = 'farmer-card p-3 flex items-center';
+        buyerElement.innerHTML = `
+          <img src="${buyer.image}" class="w-12 h-12 rounded-full mr-3">
+          <div class="flex-1">
+            <div class="font-bold">${buyer.name}</div>
+            <div class="text-sm text-gray-600">Buying: ${buyer.buying.join(', ')}</div>
+            <div class="text-xs text-green-600 mt-1">
+              <i class="fas fa-map-marker-alt mr-1"></i> ${buyer.distance} | ${buyer.purchases} purchases this week
+            </div>
+          </div>
+          <button onclick="contactBuyer('${buyer.name}')" class="bg-green-600 text-white px-3 py-1 rounded-full text-sm">
+            Contact
+          </button>
+        `;
+        buyersContainer.appendChild(buyerElement);
+      });
+    }
+
+    function updateCropStories() {
+      const storiesContainer = document.getElementById('cropStoriesContainer');
+      storiesContainer.innerHTML = '';
+      
+      cropStories.forEach(story => {
+        const storyElement = document.createElement('div');
+        storyElement.className = 'crop-story p-3 rounded-lg mb-3';
+        storyElement.innerHTML = `
+          <div class="flex items-center mb-2">
+            <img src="${story.image}" class="w-8 h-8 rounded-full mr-2">
+            <div>
+              <div class="font-bold text-sm">${story.name}</div>
+              <div class="text-xs text-gray-500">${story.role}</div>
+            </div>
+          </div>
+          <p class="text-sm mb-2">"${story.story}"</p>
+          <div class="flex justify-between text-xs text-gray-500">
+            <span><i class="fas fa-map-marker-alt mr-1"></i> ${story.location}</span>
+            <span><i class="fas fa-calendar-alt mr-1"></i> Harvested: ${story.date}</span>
+          </div>
+        `;
+        storiesContainer.appendChild(storyElement);
+      });
+    }
+
+    const translations = {
+      en: {
+        toolsTitle: "Farmer's Toolkit",
+        marketTitle: "Live Mandi Prices",
+        buyersTitle: "Buyers Nearby",
+        welcome: "Welcome",
+        sellNow: "Sell Now",
+        viewAll: "View All",
+        contact: "Contact",
+        shareStory: "Share Your Crop Story"
+      },
+      hi: {
+        toolsTitle: "किसान के उपकरण",
+        marketTitle: "लाइव मंडी कीमतें",
+        buyersTitle: "आस-पास के खरीदार",
+        welcome: "स्वागत है",
+        sellNow: "अभी बेचें",
+        viewAll: "सभी देखें",
+        contact: "संपर्क करें",
+        shareStory: "अपनी फसल की कहानी साझा करें"
+      },
+      ta: {
+        toolsTitle: "விவசாயியின் கருவிப்பெட்டி",
+        marketTitle: "நேரடி மார்க்கெட் விலைகள்",
+        buyersTitle: "அருகிலுள்ள வாங்குபவர்கள்",
+        welcome: "வரவேற்பு",
+        sellNow: "இப்போது விற்கவும்",
+        viewAll: "அனைத்தையும் காட்டு",
+        contact: "தொடர்பு கொள்ள",
+        shareStory: "உங்கள் பயிர் கதையைப் பகிரவும்"
+      },
+      te: {
+        toolsTitle: "రైతు సాధనాలు",
+        marketTitle: "ప్రత్యక్ష మండి ధరలు",
+        buyersTitle: "సమీప కొనుగోలుదారులు",
+        welcome: "స్వాగతం",
+        sellNow: "ఇప్పుడు విక్రయించండి",
+        viewAll: "అన్నీ చూడండి",
+        contact: "సంప్రదించండి",
+        shareStory: "మీ పంట కథను భాగస్వామ్యం చేయండి"
+      }
+    };
+
+    function setLanguage(lang) {
+      document.querySelector('[aria-label="tools title"]').textContent = translations[lang].toolsTitle;
+      document.querySelector('[aria-label="market title"]').textContent = translations[lang].marketTitle;
+      document.querySelector('[aria-label="buyers title"]').textContent = translations[lang].buyersTitle;
+      
+      // Update buttons and other text elements
+      document.querySelectorAll('.emergency-btn').forEach(btn => {
+        btn.textContent = translations[lang].emergency || "Emergency";
+      });
+      
+      document.querySelectorAll('.sell-now-btn').forEach(btn => {
+        btn.textContent = translations[lang].sellNow;
+      });
+      
+      document.querySelectorAll('.view-all-btn').forEach(btn => {
+        btn.textContent = translations[lang].viewAll;
+      });
+      
+      document.querySelectorAll('.contact-btn').forEach(btn => {
+        btn.textContent = translations[lang].contact;
+      });
+      
+      document.querySelectorAll('.share-story-btn').forEach(btn => {
+        btn.innerHTML = `<i class="fas fa-plus-circle mr-1"></i> ${translations[lang].shareStory}`;
+      });
+      
+      localStorage.setItem('preferredLang', lang);
+      userData.preferredLanguage = lang;
+    }
+
+    // Navigation functions
+    function openMarketPage() {
+      showLoading();
+      setTimeout(() => {
+        hideLoading();
+        alert("Market page would load here with real-time data in a full implementation");
+        // In a real app, this would load market.html or fetch market data
+      }, 1000);
+    }
+
+    function openSellNow() {
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Sell Your Produce</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Select Crop</label>
+                <select id="sellCropSelect" class="w-full p-2 border rounded-lg">
+                  ${userData.crops.map(crop => `<option>${crop}</option>`).join('')}
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Quantity</label>
+                <div class="flex">
+                  <input type="number" id="sellQuantity" value="100" class="flex-1 p-2 border rounded-l-lg">
+                  <select id="sellUnit" class="w-20 p-2 border-t border-b border-r rounded-r-lg">
+                    <option>kg</option>
+                    <option>quintal</option>
+                    <option>ton</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Quality</label>
+                <select id="sellQuality" class="w-full p-2 border rounded-lg">
+                  <option>Grade A (Best)</option>
+                  <option>Grade B (Good)</option>
+                  <option>Grade C (Average)</option>
+                </select>
+              </div>
+              
+              <div class="mb-4 p-3 bg-green-50 rounded-lg">
+                <div class="font-bold mb-1">Expected Price Range</div>
+                <div class="text-green-600 font-bold" id="expectedPriceRange">₹125 - ₹142/kg</div>
+                <div class="text-xs text-gray-500">Based on current market rates</div>
+              </div>
+              
+              <button onclick="listProduceForSale()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+                List for Sale
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+      
+      // Update expected price when crop changes
+      document.getElementById('sellCropSelect').addEventListener('change', function() {
+        updateExpectedPrice();
+      });
+      
+      document.getElementById('sellQuantity').addEventListener('input', function() {
+        updateExpectedPrice();
+      });
+      
+      document.getElementById('sellUnit').addEventListener('change', function() {
+        updateExpectedPrice();
+      });
+      
+      document.getElementById('sellQuality').addEventListener('change', function() {
+        updateExpectedPrice();
+      });
+      
+      function updateExpectedPrice() {
+        const crop = document.getElementById('sellCropSelect').value;
+        const quantity = document.getElementById('sellQuantity').value;
+        const unit = document.getElementById('sellUnit').value;
+        const quality = document.getElementById('sellQuality').value;
+        
+        // Simple calculation based on quality and market data
+        let priceRange = marketData.crops[crop] || { min: 100, max: 120 };
+        let minPrice = priceRange.min;
+        let maxPrice = priceRange.max;
+        
+        // Adjust for quality
+        if (quality.includes("Grade A")) {
+          minPrice *= 1.2;
+          maxPrice *= 1.2;
+        } else if (quality.includes("Grade C")) {
+          minPrice *= 0.8;
+          maxPrice *= 0.8;
+        }
+        
+        // Convert unit if needed (simplified)
+        if (unit === "quintal") {
+          minPrice *= 100;
+          maxPrice *= 100;
+        } else if (unit === "ton") {
+          minPrice *= 1000;
+          maxPrice *= 1000;
+        }
+        
+        document.getElementById('expectedPriceRange').textContent = 
+          `₹${Math.round(minPrice)} - ₹${Math.round(maxPrice)}/${unit}`;
+      }
+    }
+
+    function listProduceForSale() {
+      const crop = document.getElementById('sellCropSelect').value;
+      const quantity = document.getElementById('sellQuantity').value;
+      const unit = document.getElementById('sellUnit').value;
+      const quality = document.getElementById('sellQuality').value;
+      
+      showLoading();
+      setTimeout(() => {
+        hideLoading();
+        closeModal();
+        alert(`Success! Your ${quantity}${unit} of ${crop} (${quality}) has been listed for sale. Buyers will now be able to see your listing.`);
+        
+        // In a real app, this would send data to backend
+        userData.monthlyEarnings += parseInt(quantity) * marketData.crops[crop].max;
+        document.getElementById('monthlyEarnings').textContent = `₹${userData.monthlyEarnings}`;
+      }, 1500);
+    }
+
+    function openEducationPage() {
+      showLoading();
+      setTimeout(() => {
+        hideLoading();
+        alert("Education page would load here with farming tutorials and resources");
+        // In a real app, this would load education.html or fetch educational content
+      }, 1000);
+    }
+
+    function openProfilePage() {
+      showLoading();
+      setTimeout(() => {
+        hideLoading();
+        alert("Profile page would load here with farmer's personal details and history");
+        // In a real app, this would load profile.html or fetch profile data
+      }, 1000);
+    }
+
+    function openWeatherForecast() {
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">5-Day Weather Forecast</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="space-y-3">
+                ${weatherData.forecast.map(day => `
+                  <div class="flex items-center justify-between p-2 border-b">
+                    <div class="font-medium w-16">${day.day}</div>
+                    <div class="flex-1 flex items-center justify-center">
+                      <i class="fas fa-${day.condition.includes('Sunny') ? 'sun' : day.condition.includes('Rain') ? 'cloud-rain' : 'cloud-sun'} text-${day.condition.includes('Sunny') ? 'yellow-500' : day.condition.includes('Rain') ? 'blue-500' : 'gray-500'} text-xl mr-2"></i>
+                      <span>${day.condition}</span>
+                    </div>
+                    <div class="text-right">
+                      <span class="font-bold">${day.high}°</span>
+                      <span class="text-gray-500">/${day.low}°</span>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+              
+              <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                <div class="font-bold mb-1">Farming Advisory</div>
+                <div class="text-sm">${getFarmingAdvisory()}</div>
+              </div>
+              
+              <button onclick="closeModal()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+    }
+
+    function getFarmingAdvisory() {
+      if (weatherData.forecast.some(day => day.condition.includes("Rain"))) {
+        return "Rain expected in next 5 days. Consider delaying irrigation and prepare for proper drainage.";
+      } else if (weatherData.forecast.every(day => day.high > 30)) {
+        return "High temperatures expected. Increase irrigation frequency and consider shade nets for sensitive crops.";
+      } else {
+        return "Good weather conditions for farming activities. Ideal time for planting and field preparation.";
+      }
+    }
+
+    function openMandiPrices() {
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Live Mandi Prices</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-3">
+                <input type="text" placeholder="Search crops..." class="w-full p-2 border rounded-lg" id="mandiSearch">
+              </div>
+              
+              <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="grid grid-cols-4 bg-green-700 text-white text-xs font-bold p-2">
+                  <div>Crop</div>
+                  <div>Market</div>
+                  <div>Min Price</div>
+                  <div>Max Price</div>
+                </div>
+                
+                <div class="divide-y divide-gray-100" id="fullMandiPrices">
+                  ${Object.entries(marketData.crops).map(([crop, data]) => `
+                    <div class="grid grid-cols-4 p-2 text-sm">
+                      <div class="font-medium flex items-center">
+                        <img src="https://cdn-icons-png.flaticon.com/512/574/574497.png" class="w-5 h-5 mr-2"> ${crop}
+                      </div>
+                      <div>${userData.location.split(',')[0]}</div>
+                      <div>₹${data.min}/${data.unit}</div>
+                      <div class="text-green-600 font-bold">₹${data.max}/${data.unit}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              
+              <div class="mt-4 p-3 bg-green-50 rounded-lg">
+                <div class="font-bold mb-1">Price Trends</div>
+                <div class="text-sm">
+                  ${getPriceTrends()}
+                </div>
+              </div>
+              
+              <button onclick="closeModal()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+      
+      // Add search functionality
+      document.getElementById('mandiSearch').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#fullMandiPrices > div');
+        
+        rows.forEach(row => {
+          const cropName = row.querySelector('div:first-child').textContent.toLowerCase();
+          if (cropName.includes(searchTerm)) {
+            row.style.display = 'grid';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
+
+    function getPriceTrends() {
+      return `
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Tomato prices up 12% this week due to reduced supply</li>
+          <li>Paddy prices stable with government MSP support</li>
+          <li>Cotton expected to rise 5-8% in coming weeks</li>
+        </ul>
+      `;
+    }
+
+    function openCropCare() {
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Crop Care Guide</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-3">
+                <label class="block text-sm font-medium mb-1">Select Your Crop</label>
+                <select id="cropSelect" class="w-full p-2 border rounded-lg">
+                  ${userData.crops.map(crop => `<option>${crop}</option>`).join('')}
+                  <option>Other</option>
+                </select>
+              </div>
+              
+              <div id="cropCareContent">
+                ${getCropCareContent(userData.crops[0])}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+      
+      // Update content when crop changes
+      document.getElementById('cropSelect').addEventListener('change', function() {
+        document.getElementById('cropCareContent').innerHTML = getCropCareContent(this.value);
+      });
+    }
+
+    function getCropCareContent(crop) {
+      const careData = {
+        Tomato: {
+          planting: "Plant in well-drained soil with pH 6.0-6.8. Space plants 24-36 inches apart.",
+          watering: "Water deeply 2-3 times per week. Avoid wetting foliage to prevent diseases.",
+          fertilizing: "Use balanced fertilizer (10-10-10) at planting and switch to high-potassium fertilizer when fruiting.",
+          pests: "Common pests: Aphids, whiteflies, hornworms. Use neem oil or insecticidal soap.",
+          diseases: "Watch for blight and wilt. Rotate crops and remove affected plants immediately."
+        },
+        Paddy: {
+          planting: "Transplant seedlings when 4-6 weeks old. Maintain 6 inches between plants.",
+          watering: "Keep fields flooded with 2-4 inches of water during growing season.",
+          fertilizing: "Apply nitrogen in 3 splits: basal, tillering, panicle initiation stages.",
+          pests: "Common pests: Stem borers, leaf folders. Use resistant varieties and biological controls.",
+          diseases: "Watch for blast and bacterial blight. Use certified disease-free seeds."
+        },
+        Cotton: {
+          planting: "Plant after last frost when soil reaches 60°F. Space plants 12-18 inches apart.",
+          watering: "Water deeply every 7-10 days. Reduce water as bolls begin to open.",
+          fertilizing: "Apply nitrogen and potassium based on soil test recommendations.",
+          pests: "Common pests: Bollworms, aphids. Use integrated pest management strategies.",
+          diseases: "Watch for fusarium wilt and verticillium wilt. Plant resistant varieties."
+        },
+        Other: {
+          planting: "Select crop-specific planting guidelines based on your region and season.",
+          watering: "Most crops need 1-2 inches of water per week, adjusted for rainfall.",
+          fertilizing: "Conduct soil test to determine nutrient needs for optimal growth.",
+          pests: "Regularly inspect plants and use appropriate organic or chemical controls.",
+          diseases: "Practice crop rotation and proper spacing to minimize disease pressure."
+        }
+      };
+      
+      const data = careData[crop] || careData.Other;
+      
+      return `
+        <div class="space-y-4">
+          <div class="border rounded-lg p-3">
+            <div class="font-bold text-green-700 mb-1">Planting Guide</div>
+            <div class="text-sm">${data.planting}</div>
+          </div>
+          
+          <div class="border rounded-lg p-3">
+            <div class="font-bold text-blue-700 mb-1">Watering Requirements</div>
+            <div class="text-sm">${data.watering}</div>
+          </div>
+          
+          <div class="border rounded-lg p-3">
+            <div class="font-bold text-purple-700 mb-1">Fertilizing Schedule</div>
+            <div class="text-sm">${data.fertilizing}</div>
+          </div>
+          
+          <div class="border rounded-lg p-3">
+            <div class="font-bold text-red-700 mb-1">Common Pests</div>
+            <div class="text-sm">${data.pests}</div>
+          </div>
+          
+          <div class="border rounded-lg p-3">
+            <div class="font-bold text-orange-700 mb-1">Disease Management</div>
+            <div class="text-sm">${data.diseases}</div>
+          </div>
+        </div>
+        
+        <button onclick="openCropDoctor()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+          Need More Help? Consult Crop Doctor
+        </button>
+      `;
+    }
+
+    function openFertilizerCalculator() {
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Fertilizer Calculator</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Crop Type</label>
+                <select id="fertilizerCrop" class="w-full p-2 border rounded-lg">
+                  ${userData.crops.map(crop => `<option>${crop}</option>`).join('')}
+                  <option>Other</option>
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Field Area (acres)</label>
+                <input type="number" id="fieldArea" value="1" min="0.1" step="0.1" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Soil Test Results (optional)</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <label class="text-xs">N (kg/ha)</label>
+                    <input type="number" id="soilN" placeholder="N" class="w-full p-2 border rounded-lg">
+                  </div>
+                  <div>
+                    <label class="text-xs">P (kg/ha)</label>
+                    <input type="number" id="soilP" placeholder="P" class="w-full p-2 border rounded-lg">
+                  </div>
+                  <div>
+                    <label class="text-xs">K (kg/ha)</label>
+                    <input type="number" id="soilK" placeholder="K" class="w-full p-2 border rounded-lg">
+                  </div>
+                </div>
+              </div>
+              
+              <button onclick="calculateFertilizer()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+                Calculate Requirements
+              </button>
+              
+              <div id="fertilizerResults" class="hidden mt-4 p-3 bg-green-50 rounded-lg">
+                <div class="font-bold mb-2">Recommended Fertilizer Application</div>
+                <div id="fertilizerRecommendation"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+    }
+
+    function calculateFertilizer() {
+      const crop = document.getElementById('fertilizerCrop').value;
+      const area = parseFloat(document.getElementById('fieldArea').value);
+      const soilN = document.getElementById('soilN').value;
+      const soilP = document.getElementById('soilP').value;
+      const soilK = document.getElementById('soilK').value;
+      
+      // Simple calculation based on crop type (in a real app, this would be more sophisticated)
+      let recommendation = "";
+      
+      if (crop === "Tomato") {
+        recommendation = `
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong>Nitrogen (N):</strong> ${Math.round(120 * area)} kg (split into 3 applications)</li>
+            <li><strong>Phosphorus (P₂O₅):</strong> ${Math.round(80 * area)} kg (apply at planting)</li>
+            <li><strong>Potassium (K₂O):</strong> ${Math.round(150 * area)} kg (split into 2 applications)</li>
+          </ul>
+          <div class="mt-2 text-sm">Apply compost (5-10 tons/acre) to improve soil health.</div>
+        `;
+      } else if (crop === "Paddy") {
+        recommendation = `
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong>Nitrogen (N):</strong> ${Math.round(100 * area)} kg in 3 splits</li>
+            <li><strong>Phosphorus (P₂O₅):</strong> ${Math.round(50 * area)} kg as basal dose</li>
+            <li><strong>Potassium (K₂O):</strong> ${Math.round(50 * area)} kg at tillering</li>
+          </ul>
+          <div class="mt-2 text-sm">Use green manure crops like Sesbania to supplement nutrients.</div>
+        `;
+      } else {
+        recommendation = `
+          <div class="text-sm">
+            For ${crop}, we recommend conducting a soil test for precise recommendations. 
+            General guideline is 100-120 kg N, 50-60 kg P₂O₅, and 50-80 kg K₂O per acre.
+          </div>
+        `;
+      }
+      
+      document.getElementById('fertilizerRecommendation').innerHTML = recommendation;
+      document.getElementById('fertilizerResults').classList.remove('hidden');
+    }
+
+    function showMoreTools() {
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">More Farming Tools</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <div onclick="openLoanCalculator()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+                  <div class="bg-indigo-100 p-3 rounded-full mb-2">
+                    <i class="fas fa-rupee-sign text-indigo-600 text-xl"></i>
+                  </div>
+                  <span class="text-xs font-semibold text-center">Loan Calculator</span>
+                </div>
+                
+                <div onclick="openIrrigationPlanner()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+                  <div class="bg-blue-100 p-3 rounded-full mb-2">
+                    <i class="fas fa-tint text-blue-600 text-xl"></i>
+                  </div>
+                  <span class="text-xs font-semibold text-center">Irrigation Planner</span>
+                </div>
+                
+                <div onclick="openSeedRateCalculator()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+                  <div class="bg-green-100 p-3 rounded-full mb-2">
+                    <i class="fas fa-seedling text-green-600 text-xl"></i>
+                  </div>
+                  <span class="text-xs font-semibold text-center">Seed Rate Calculator</span>
+                </div>
+                
+                <div onclick="openHarvestPlanner()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+                  <div class="bg-orange-100 p-3 rounded-full mb-2">
+                    <i class="fas fa-calendar-alt text-orange-600 text-xl"></i>
+                  </div>
+                  <span class="text-xs font-semibold text-center">Harvest Planner</span>
+                </div>
+                
+                <div onclick="openSoilHealthTracker()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+                  <div class="bg-brown-100 p-3 rounded-full mb-2">
+                    <i class="fas fa-vial text-brown-600 text-xl"></i>
+                  </div>
+                  <span class="text-xs font-semibold text-center">Soil Health Tracker</span>
+                </div>
+                
+                <div onclick="openCropRotationPlanner()" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+                  <div class="bg-purple-100 p-3 rounded-full mb-2">
+                    <i class="fas fa-sync-alt text-purple-600 text-xl"></i>
+                  </div>
+                  <span class="text-xs font-semibold text-center">Crop Rotation Planner</span>
+                </div>
+              </div>
+              
+              <button onclick="closeModal()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+    }
+
+    function openLoanCalculator() {
+      closeModal(); // Close the more tools modal first
+      
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Agricultural Loan Calculator</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Loan Amount (₹)</label>
+                <input type="number" id="loanAmount" value="100000" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Interest Rate (%)</label>
+                <input type="number" id="interestRate" value="7.5" step="0.1" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Loan Term (years)</label>
+                <input type="number" id="loanTerm" value="5" min="1" max="15" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Loan Type</label>
+                <select id="loanType" class="w-full p-2 border rounded-lg">
+                  <option>Kisan Credit Card</option>
+                  <option>Term Loan</option>
+                  <option>Equipment Loan</option>
+                  <option>Other Agricultural Loan</option>
+                </select>
+              </div>
+              
+              <button onclick="calculateLoan()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+                Calculate EMI
+              </button>
+              
+              <div id="loanResults" class="hidden mt-4 p-3 bg-blue-50 rounded-lg">
+                <div class="font-bold mb-2">Loan Repayment Details</div>
+                <div id="loanRecommendation"></div>
+              </div>
+              
+              <button onclick="applyForLoan()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold mt-3">
+                Apply for Loan
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+    }
+
+    function calculateLoan() {
+      const amount = parseFloat(document.getElementById('loanAmount').value);
+      const rate = parseFloat(document.getElementById('interestRate').value) / 100 / 12;
+      const term = parseFloat(document.getElementById('loanTerm').value) * 12;
+      const type = document.getElementById('loanType').value;
+      
+      // EMI calculation formula: [P x R x (1+R)^N]/[(1+R)^N-1]
+      const emi = amount * rate * Math.pow(1 + rate, term) / (Math.pow(1 + rate, term) - 1);
+      const totalPayment = emi * term;
+      const totalInterest = totalPayment - amount;
+      
+      document.getElementById('loanRecommendation').innerHTML = `
+        <div class="grid grid-cols-2 gap-2 mb-2">
+          <div>Monthly EMI:</div>
+          <div class="font-bold">₹${emi.toFixed(2)}</div>
+          
+          <div>Total Interest:</div>
+          <div class="font-bold">₹${totalInterest.toFixed(2)}</div>
+          
+          <div>Total Payment:</div>
+          <div class="font-bold">₹${totalPayment.toFixed(2)}</div>
+          
+          <div>Loan Type:</div>
+          <div class="font-bold">${type}</div>
+        </div>
+        <div class="text-sm mt-2">
+          Government subsidies may be available for this loan type. Check with your bank for details.
+        </div>
+      `;
+      
+      document.getElementById('loanResults').classList.remove('hidden');
+    }
+
+    function applyForLoan() {
+      showLoading();
+      setTimeout(() => {
+        hideLoading();
+        alert("Loan application would be submitted in a real implementation. You would be redirected to the bank's application form.");
+      }, 1500);
+    }
+
+    function openIrrigationPlanner() {
+      closeModal(); // Close the more tools modal first
+      
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Irrigation Planner</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Select Crop</label>
+                <select id="irrigationCrop" class="w-full p-2 border rounded-lg">
+                  ${userData.crops.map(crop => `<option>${crop}</option>`).join('')}
+                  <option>Other</option>
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Growth Stage</label>
+                <select id="growthStage" class="w-full p-2 border rounded-lg">
+                  <option>Initial</option>
+                  <option>Vegetative</option>
+                  <option>Flowering</option>
+                  <option>Fruit Development</option>
+                  <option>Maturity</option>
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Soil Type</label>
+                <select id="soilType" class="w-full p-2 border rounded-lg">
+                  <option>Sandy</option>
+                  <option>Loamy</option>
+                  <option>Clay</option>
+                  <option>Silty</option>
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Last Irrigation</label>
+                <input type="date" id="lastIrrigation" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Rainfall (mm) in last 7 days</label>
+                <input type="number" id="rainfall" value="0" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <button onclick="calculateIrrigation()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+                Calculate Irrigation Needs
+              </button>
+              
+              <div id="irrigationResults" class="hidden mt-4 p-3 bg-blue-50 rounded-lg">
+                <div class="font-bold mb-2">Irrigation Recommendation</div>
+                <div id="irrigationRecommendation"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+      
+      // Set default date to today
+      document.getElementById('lastIrrigation').valueAsDate = new Date();
+    }
+
+    function calculateIrrigation() {
+      const crop = document.getElementById('irrigationCrop').value;
+      const stage = document.getElementById('growthStage').value;
+      const soil = document.getElementById('soilType').value;
+      const lastIrrigation = new Date(document.getElementById('lastIrrigation').value);
+      const rainfall = parseFloat(document.getElementById('rainfall').value);
+      
+      // Simple calculation based on inputs
+      const daysSinceIrrigation = Math.floor((new Date() - lastIrrigation) / (1000 * 60 * 60 * 24));
+      let recommendation = "";
+      
+      if (crop === "Tomato") {
+        if (stage === "Flowering" || stage === "Fruit Development") {
+          recommendation = "Critical stage! Water immediately with 25-30mm if soil is dry.";
+        } else if (daysSinceIrrigation > 7 && rainfall < 10) {
+          recommendation = "Apply 20-25mm irrigation. Tomatoes need consistent moisture.";
+        } else if (rainfall > 20) {
+          recommendation = "No irrigation needed. Recent rainfall is sufficient.";
+        } else {
+          recommendation = "Check soil moisture. Light irrigation (10-15mm) may be needed.";
+        }
+      } else if (crop === "Paddy") {
+        recommendation = "Maintain 2-4 inches of standing water in the field.";
+      } else {
+        recommendation = "General recommendation: Apply 15-20mm irrigation every 5-7 days during dry periods.";
+      }
+      
+      // Adjust for soil type
+      if (soil === "Sandy") {
+        recommendation += " Sandy soil needs more frequent irrigation (every 3-4 days).";
+      } else if (soil === "Clay") {
+        recommendation += " Clay soil holds water longer - reduce frequency.";
+      }
+      
+      document.getElementById('irrigationRecommendation').innerHTML = `
+        <div class="mb-2">${recommendation}</div>
+        <div class="text-sm">
+          <strong>Next irrigation:</strong> ${getNextIrrigationDate(daysSinceIrrigation, rainfall)}
+        </div>
+      `;
+      
+      document.getElementById('irrigationResults').classList.remove('hidden');
+    }
+
+    function getNextIrrigationDate(daysSince, rainfall) {
+      if (rainfall > 30) return "No irrigation needed for 7-10 days";
+      if (daysSince < 3) return "Wait 4-5 more days before next irrigation";
+      if (rainfall > 10) return "Check again in 2-3 days";
+      return "Within next 1-2 days";
+    }
+
+    function openSeedRateCalculator() {
+      closeModal(); // Close the more tools modal first
+      
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Seed Rate Calculator</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Select Crop</label>
+                <select id="seedCrop" class="w-full p-2 border rounded-lg">
+                  ${userData.crops.map(crop => `<option>${crop}</option>`).join('')}
+                  <option>Other</option>
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Field Area (acres)</label>
+                <input type="number" id="seedArea" value="1" min="0.1" step="0.1" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Planting Method</label>
+                <select id="plantingMethod" class="w-full p-2 border rounded-lg">
+                  <option>Direct Seeding</option>
+                  <option>Transplanting</option>
+                  <option>Broadcasting</option>
+                  <option>Dibbling</option>
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Seed Type</label>
+                <select id="seedType" class="w-full p-2 border rounded-lg">
+                  <option>Hybrid</option>
+                  <option>Improved Variety</option>
+                  <option>Traditional Variety</option>
+                </select>
+              </div>
+              
+              <button onclick="calculateSeedRate()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+                Calculate Seed Requirement
+              </button>
+              
+              <div id="seedResults" class="hidden mt-4 p-3 bg-green-50 rounded-lg">
+                <div class="font-bold mb-2">Seed Requirement</div>
+                <div id="seedRecommendation"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+    }
+
+    function calculateSeedRate() {
+      const crop = document.getElementById('seedCrop').value;
+      const area = parseFloat(document.getElementById('seedArea').value);
+      const method = document.getElementById('plantingMethod').value;
+      const type = document.getElementById('seedType').value;
+      
+      // Seed rate calculation based on crop and method
+      let seedRate = 0;
+      let unit = "kg";
+      
+      if (crop === "Tomato") {
+        if (method === "Transplanting") {
+          seedRate = 100 * area; // grams
+          unit = "g";
+        } else {
+          seedRate = 0.5 * area; // kg
+        }
+      } else if (crop === "Paddy") {
+        seedRate = 20 * area; // kg
+      } else if (crop === "Cotton") {
+        seedRate = 1.5 * area; // kg
+      } else {
+        seedRate = 5 * area; // kg (generic rate)
+      }
+      
+      // Adjust for seed type
+      if (type === "Hybrid") {
+        seedRate *= 0.8; // Hybrid seeds often have higher germination rates
+      } else if (type === "Traditional Variety") {
+        seedRate *= 1.2; // May need more seeds
+      }
+      
+      document.getElementById('seedRecommendation').innerHTML = `
+        <div class="grid grid-cols-2 gap-2 mb-2">
+          <div>Crop:</div>
+          <div class="font-bold">${crop}</div>
+          
+          <div>Area:</div>
+          <div class="font-bold">${area} acres</div>
+          
+          <div>Planting Method:</div>
+          <div class="font-bold">${method}</div>
+          
+          <div>Seed Type:</div>
+          <div class="font-bold">${type}</div>
+          
+          <div>Seed Required:</div>
+          <div class="font-bold text-green-600">${seedRate.toFixed(2)} ${unit}</div>
+        </div>
+        <div class="text-sm mt-2">
+          Add 10-15% extra seeds to account for germination rate and field losses.
+        </div>
+      `;
+      
+      document.getElementById('seedResults').classList.remove('hidden');
+    }
+
+    function openHarvestPlanner() {
+      closeModal(); // Close the more tools modal first
+      
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Harvest Planner</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Select Crop</label>
+                <select id="harvestCrop" class="w-full p-2 border rounded-lg">
+                  ${userData.crops.map(crop => `<option>${crop}</option>`).join('')}
+                  <option>Other</option>
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Planting Date</label>
+                <input type="date" id="plantingDate" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Current Growth Stage</label>
+                <select id="currentStage" class="w-full p-2 border rounded-lg">
+                  <option>Germination</option>
+                  <option>Vegetative</option>
+                  <option>Flowering</option>
+                  <option>Fruit Development</option>
+                  <option>Maturity</option>
+                </select>
+              </div>
+              
+              <button onclick="calculateHarvest()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+                Calculate Harvest Time
+              </button>
+              
+              <div id="harvestResults" class="hidden mt-4 p-3 bg-yellow-50 rounded-lg">
+                <div class="font-bold mb-2">Harvest Plan</div>
+                <div id="harvestRecommendation"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+      
+      // Set default date to 30 days ago
+      const date = new Date();
+      date.setDate(date.getDate() - 30);
+      document.getElementById('plantingDate').valueAsDate = date;
+    }
+
+    function calculateHarvest() {
+      const crop = document.getElementById('harvestCrop').value;
+      const plantingDate = new Date(document.getElementById('plantingDate').value);
+      const currentStage = document.getElementById('currentStage').value;
+      
+      const today = new Date();
+      const daysSincePlanting = Math.floor((today - plantingDate) / (1000 * 60 * 60 * 24));
+      
+      let harvestInfo = {};
+      
+      if (crop === "Tomato") {
+        harvestInfo = {
+          daysToMaturity: 70,
+          harvestWindow: "When 60-90% fruits show color change",
+          indicators: "Firmness, color, and size of fruits",
+          postHarvest: "Store at 12-15°C with 90-95% humidity"
+        };
+      } else if (crop === "Paddy") {
+        harvestInfo = {
+          daysToMaturity: 120,
+          harvestWindow: "When 80-85% grains are straw-colored",
+          indicators: "Moisture content (20-25%)",
+          postHarvest: "Dry to 14% moisture before storage"
+        };
+      } else if (crop === "Cotton") {
+        harvestInfo = {
+          daysToMaturity: 150,
+          harvestWindow: "When bolls open fully",
+          indicators: "Fiber quality and boll opening",
+          postHarvest: "Keep dry to prevent mold"
+        };
+      } else {
+        harvestInfo = {
+          daysToMaturity: 90,
+          harvestWindow: "When crop reaches physiological maturity",
+          indicators: "Check seed/fruit development",
+          postHarvest: "Follow standard storage practices"
+        };
+      }
+      
+      const daysToHarvest = harvestInfo.daysToMaturity - daysSincePlanting;
+      const harvestDate = new Date(plantingDate);
+      harvestDate.setDate(harvestDate.getDate() + harvestInfo.daysToMaturity);
+      
+      document.getElementById('harvestRecommendation').innerHTML = `
+        <div class="grid grid-cols-2 gap-2 mb-2">
+          <div>Days Since Planting:</div>
+          <div class="font-bold">${daysSincePlanting} days</div>
+          
+          <div>Current Stage:</div>
+          <div class="font-bold">${currentStage}</div>
+          
+          <div>Expected Harvest In:</div>
+          <div class="font-bold text-green-600">${daysToHarvest > 0 ? daysToHarvest + " days" : "Ready for harvest"}</div>
+          
+          <div>Best Harvest Time:</div>
+          <div class="font-bold">${harvestInfo.harvestWindow}</div>
+        </div>
+        
+        <div class="mt-3">
+          <div class="font-medium mb-1">Harvest Indicators:</div>
+          <div class="text-sm">${harvestInfo.indicators}</div>
+        </div>
+        
+        <div class="mt-3">
+          <div class="font-medium mb-1">Post-Harvest Handling:</div>
+          <div class="text-sm">${harvestInfo.postHarvest}</div>
+        </div>
+        
+        <div class="mt-3 text-sm text-blue-600">
+          Next: Check current market prices to plan your sales strategy.
+        </div>
+      `;
+      
+      document.getElementById('harvestResults').classList.remove('hidden');
+    }
+
+    function openSoilHealthTracker() {
+      closeModal(); // Close the more tools modal first
+      
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Soil Health Tracker</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Field Location</label>
+                <input type="text" id="fieldLocation" value="${userData.location}" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Last Soil Test Date</label>
+                <input type="date" id="lastTestDate" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Soil Test Results (if available)</label>
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <label class="text-xs">pH</label>
+                    <input type="number" id="soilPH" placeholder="6.5" step="0.1" min="0" max="14" class="w-full p-2 border rounded-lg">
+                  </div>
+                  <div>
+                    <label class="text-xs">N (kg/ha)</label>
+                    <input type="number" id="soilNitrogen" placeholder="N" class="w-full p-2 border rounded-lg">
+                  </div>
+                  <div>
+                    <label class="text-xs">P (kg/ha)</label>
+                    <input type="number" id="soilPhosphorus" placeholder="P" class="w-full p-2 border rounded-lg">
+                  </div>
+                  <div>
+                    <label class="text-xs">K (kg/ha)</label>
+                    <input type="number" id="soilPotassium" placeholder="K" class="w-full p-2 border rounded-lg">
+                  </div>
+                  <div>
+                    <label class="text-xs">OC (%)</label>
+                    <input type="number" id="soilOrganic" placeholder="OC" step="0.1" class="w-full p-2 border rounded-lg">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Current Cropping Pattern</label>
+                <input type="text" id="croppingPattern" value="${userData.crops.join(', ')}" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <button onclick="analyzeSoilHealth()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+                Analyze Soil Health
+              </button>
+              
+              <div id="soilResults" class="hidden mt-4 p-3 bg-brown-50 rounded-lg">
+                <div class="font-bold mb-2">Soil Health Analysis</div>
+                <div id="soilRecommendation"></div>
+              </div>
+              
+              <button onclick="scheduleSoilTest()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold mt-3">
+                Schedule Soil Test
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+      
+      // Set default date to 6 months ago
+      const date = new Date();
+      date.setMonth(date.getMonth() - 6);
+      document.getElementById('lastTestDate').valueAsDate = date;
+    }
+
+    function analyzeSoilHealth() {
+      const ph = parseFloat(document.getElementById('soilPH').value) || 7;
+      const n = parseFloat(document.getElementById('soilNitrogen').value) || 200;
+      const p = parseFloat(document.getElementById('soilPhosphorus').value) || 30;
+      const k = parseFloat(document.getElementById('soilPotassium').value) || 150;
+      const oc = parseFloat(document.getElementById('soilOrganic').value) || 0.8;
+      const lastTest = document.getElementById('lastTestDate').value;
+      
+      let healthStatus = "Good";
+      let healthColor = "text-green-600";
+      let issues = [];
+      let recommendations = [];
+      
+      // pH analysis
+      if (ph < 5.5) {
+        issues.push("Soil is too acidic (pH: " + ph + ")");
+        recommendations.push("Apply lime to raise pH");
+      } else if (ph > 8.5) {
+        issues.push("Soil is too alkaline (pH: " + ph + ")");
+        recommendations.push("Apply gypsum or sulfur to lower pH");
+      }
+      
+      // Nutrient analysis
+      if (n < 150) {
+        issues.push("Low nitrogen (" + n + " kg/ha)");
+        recommendations.push("Apply nitrogen-rich fertilizers or grow leguminous cover crops");
+      }
+      
+      if (p < 20) {
+        issues.push("Low phosphorus (" + p + " kg/ha)");
+        recommendations.push("Apply phosphorus fertilizers like DAP or SSP");
+      }
+      
+      if (k < 100) {
+        issues.push("Low potassium (" + k + " kg/ha)");
+        recommendations.push("Apply potash fertilizers or wood ash");
+      }
+      
+      // Organic carbon
+      if (oc < 0.5) {
+        issues.push("Very low organic carbon (" + oc + "%)");
+        recommendations.push("Add organic matter through compost, manure, or green manure crops");
+      }
+      
+      // Test recency
+      const testDate = new Date(lastTest);
+      const monthsSinceTest = (new Date() - testDate) / (1000 * 60 * 60 * 24 * 30);
+      
+      if (monthsSinceTest > 24) {
+        issues.push("Soil test is over 2 years old");
+        recommendations.push("Schedule a new soil test for accurate recommendations");
+      }
+      
+      // Determine overall status
+      if (issues.length > 2) {
+        healthStatus = "Poor";
+        healthColor = "text-red-600";
+      } else if (issues.length > 0) {
+        healthStatus = "Fair";
+        healthColor = "text-yellow-600";
+      }
+      
+      document.getElementById('soilRecommendation').innerHTML = `
+        <div class="mb-3">
+          <div class="font-bold ${healthColor}">Soil Health: ${healthStatus}</div>
+          <div class="text-sm">Last tested: ${lastTest || "Not available"}</div>
+        </div>
+        
+        ${issues.length > 0 ? `
+          <div class="mb-3">
+            <div class="font-medium">Identified Issues:</div>
+            <ul class="list-disc pl-5 text-sm">
+              ${issues.map(issue => `<li>${issue}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+        
+        ${recommendations.length > 0 ? `
+          <div class="mb-3">
+            <div class="font-medium">Recommendations:</div>
+            <ul class="list-disc pl-5 text-sm">
+              ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+        
+        <div class="text-sm mt-2">
+          For precise recommendations, conduct a full soil test through your local agriculture department.
+        </div>
+      `;
+      
+      document.getElementById('soilResults').classList.remove('hidden');
+    }
+
+    function scheduleSoilTest() {
+      showLoading();
+      setTimeout(() => {
+        hideLoading();
+        alert("Soil test scheduled! An agriculture officer will contact you within 3 working days to collect samples.");
+        closeModal();
+      }, 1500);
+    }
+
+    function openCropRotationPlanner() {
+      closeModal(); // Close the more tools modal first
+      
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Crop Rotation Planner</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Current Main Crop</label>
+                <select id="currentCrop" class="w-full p-2 border rounded-lg">
+                  ${userData.crops.map(crop => `<option>${crop}</option>`).join('')}
+                  <option>Other</option>
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Field Issues (select all that apply)</label>
+                <div class="space-y-2 mt-2">
+                  <label class="flex items-center">
+                    <input type="checkbox" class="mr-2"> Soil-borne diseases
+                  </label>
+                  <label class="flex items-center">
+                    <input type="checkbox" class="mr-2"> Nutrient depletion
+                  </label>
+                  <label class="flex items-center">
+                    <input type="checkbox" class="mr-2"> Weed problems
+                  </label>
+                  <label class="flex items-center">
+                    <input type="checkbox" class="mr-2"> Pest buildup
+                  </label>
+                  <label class="flex items-center">
+                    <input type="checkbox" class="mr-2"> None (preventive rotation)
+                  </label>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Available Seasons</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <label class="flex items-center">
+                    <input type="checkbox" checked class="mr-2"> Kharif
+                  </label>
+                  <label class="flex items-center">
+                    <input type="checkbox" checked class="mr-2"> Rabi
+                  </label>
+                  <label class="flex items-center">
+                    <input type="checkbox" class="mr-2"> Zaid
+                  </label>
+                </div>
+              </div>
+              
+              <button onclick="generateRotationPlan()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+                Generate Rotation Plan
+              </button>
+              
+              <div id="rotationResults" class="hidden mt-4 p-3 bg-purple-50 rounded-lg">
+                <div class="font-bold mb-2">Recommended Crop Rotation</div>
+                <div id="rotationRecommendation"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+    }
+
+    function generateRotationPlan() {
+      const currentCrop = document.getElementById('currentCrop').value;
+      
+      let rotationPlan = [];
+      
+      if (currentCrop === "Tomato") {
+        rotationPlan = [
+          { season: "Kharif", crop: "Tomato", note: "Current crop" },
+          { season: "Rabi", crop: "Wheat", note: "Breaks disease cycles" },
+          { season: "Next Kharif", crop: "Pulses", note: "Improves soil nitrogen" },
+          { season: "Next Rabi", crop: "Mustard", note: "Deep roots improve soil structure" }
+        ];
+      } else if (currentCrop === "Paddy") {
+        rotationPlan = [
+          { season: "Kharif", crop: "Paddy", note: "Current crop" },
+          { season: "Rabi", crop: "Chickpea", note: "Nitrogen fixation" },
+          { season: "Next Kharif", crop: "Maize", note: "Different growth habit" },
+          { season: "Next Rabi", crop: "Wheat", note: "Breaks pest cycles" }
+        ];
+      } else if (currentCrop === "Cotton") {
+        rotationPlan = [
+          { season: "Kharif", crop: "Cotton", note: "Current crop" },
+          { season: "Rabi", crop: "Wheat", note: "Different family" },
+          { season: "Next Kharif", crop: "Soybean", note: "Improves soil health" },
+          { season: "Next Rabi", crop: "Mustard", note: "Economic alternative" }
+        ];
+      } else {
+        rotationPlan = [
+          { season: "Kharif", crop: currentCrop, note: "Current crop" },
+          { season: "Rabi", crop: "Legume crop", note: "For nitrogen fixation" },
+          { season: "Next Kharif", crop: "Cereal crop", note: "Different growth pattern" },
+          { season: "Next Rabi", crop: "Oilseed crop", note: "Diversifies income" }
+        ];
+      }
+      
+      document.getElementById('rotationRecommendation').innerHTML = `
+        <div class="text-sm mb-3">
+          Rotating crops helps break pest cycles, improves soil health, and can increase yields by 10-25%.
+        </div>
+        
+        <div class="space-y-3">
+          ${rotationPlan.map((item, index) => `
+            <div class="border-l-4 border-purple-400 pl-3 py-1">
+              <div class="font-bold">${item.season}: ${item.crop}</div>
+              <div class="text-xs text-gray-600">${item.note}</div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="mt-3 text-sm">
+          <strong>Tip:</strong> Incorporate green manure crops like Sunnhemp or Dhaincha during fallow periods.
+        </div>
+      `;
+      
+      document.getElementById('rotationResults').classList.remove('hidden');
+    }
+
+    function openShareStoryModal() {
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Share Your Crop Story</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Crop Type</label>
+                <select id="storyCrop" class="w-full p-2 border rounded-lg">
+                  ${userData.crops.map(crop => `<option>${crop}</option>`).join('')}
+                  <option>Other</option>
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Your Experience</label>
+                <textarea id="storyText" rows="4" class="w-full p-2 border rounded-lg" placeholder="Share your farming experience, innovations, or challenges..."></textarea>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Upload Photo (optional)</label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                  <i class="fas fa-camera text-3xl text-gray-400 mb-2"></i>
+                  <div class="text-gray-500">Tap to upload photo</div>
+                </div>
+              </div>
+              
+              <button onclick="submitStory()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+                Share Your Story
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+    }
+
+    function submitStory() {
+      const crop = document.getElementById('storyCrop').value;
+      const text = document.getElementById('storyText').value;
+      
+      if (!text) {
+        alert("Please share your experience before submitting.");
+        return;
+      }
+      
+      showLoading();
+      setTimeout(() => {
+        hideLoading();
+        closeModal();
+        alert("Thank you for sharing your farming experience! Your story will be reviewed and published soon.");
+        
+        // In a real app, this would send data to backend
+        const newStory = {
+          name: userData.name,
+          role: `${crop} Farmer`,
+          story: text,
+          location: userData.location,
+          date: new Date().toLocaleDateString(),
+          image: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+        };
+        
+        cropStories.unshift(newStory);
+        updateCropStories();
+      }, 1500);
+    }
+
+    function contactBuyer(buyerName) {
+      showLoading();
+      setTimeout(() => {
+        hideLoading();
+        alert(`Connecting you with ${buyerName}... In a real implementation, this would initiate a call or chat.`);
+      }, 1000);
+    }
+
+    function showLoading() {
+      const loading = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div class="bg-white p-5 rounded-lg flex items-center">
+            <div class="spinner mr-3"></div>
+            <div>Loading...</div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', loading);
+    }
+
+    function hideLoading() {
+      const loadingElement = document.querySelector('.fixed.inset-0.z-50.flex.items-center.justify-center');
+      if (loadingElement) {
+        loadingElement.remove();
+      }
+    }
+
+    function closeModal() {
+      const modal = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
+      if (modal) {
+        modal.remove();
+      }
+    }
+
+    // Voice Assistant Script
+    function startVoiceAssistant() {
+      document.getElementById('voiceHelp').classList.remove('hidden');
+      
+      // In a real implementation, this would use the Web Speech API
+      // For demo purposes, we'll simulate voice recognition
+      simulateVoiceRecognition();
+    }
+    
+    function simulateVoiceRecognition() {
+      document.getElementById('voiceHelp').innerHTML = `
+        <div class="flex items-center text-yellow-800">
+          <i class="fas fa-microphone-alt animate-pulse mr-2"></i>
+          <div>Listening... Say your command</div>
+        </div>
+      `;
+      
+      // Simulate listening for 2 seconds
+      setTimeout(() => {
+        // Randomly pick a command to simulate
+        const commands = [
+          "What's the price of tomato today?",
+          "Show me buyers for paddy",
+          "What's the weather forecast?",
+          "Check government schemes",
+          "Open crop doctor"
+        ];
+        const randomCommand = commands[Math.floor(Math.random() * commands.length)];
+        
+        handleVoiceCommand(randomCommand);
+      }, 2000);
+    }
+    
+    function handleVoiceCommand(command) {
+      let response = "I didn't understand that command.";
+      
+      if (command.includes("price") && (command.includes("tomato") || command.includes("tomatoes"))) {
+        response = "Current price for tomato is ₹110 to ₹135 per kg in Nalgonda market.";
+      } 
+      else if (command.includes("buyers") || command.includes("purchasers") || command.includes("paddy")) {
+        response = "Showing nearby buyers for paddy.";
+        // Scroll to buyers section
+        document.querySelector('[aria-label="buyers title"]').scrollIntoView({ behavior: 'smooth' });
+      }
+      else if (command.includes("weather") || command.includes("rain")) {
+        response = "Today's weather is partly cloudy with 28°C. No rain expected.";
+        openWeatherForecast();
+      }
+      else if (command.includes("schemes") || command.includes("government")) {
+        response = "Checking eligible government schemes for you...";
+        checkSchemes();
+      }
+      else if (command.includes("crop doctor") || command.includes("plant disease")) {
+        response = "Opening crop doctor to diagnose plant problems...";
+        openCropDoctor();
+      }
+      
+      speakResponse(response);
+      showVoiceResponse(response, command);
+    }
+    
+    function speakResponse(text) {
+      // In a real implementation, this would use speech synthesis
+      console.log("Speaking:", text);
+    }
+    
+    function showVoiceResponse(response, command) {
+      document.getElementById('voiceHelp').innerHTML = `
+        <div class="text-yellow-800">
+          <div class="font-bold">You said:</div>
+          <div class="mb-1 text-sm">"${command}"</div>
+          <div class="font-bold mt-2">Response:</div>
+          <div class="mb-2">${response}</div>
+          <button onclick="hideVoiceHelp()" class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm">
+            Close
+          </button>
+        </div>
+      `;
+    }
+    
+    function hideVoiceHelp() {
+      document.getElementById('voiceHelp').classList.add('hidden');
+    }
+
+    // Emergency SOS Functionality
+    function showEmergencyOptions() {
+      const options = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div class="bg-white rounded-lg p-5 w-4/5 max-w-md">
+            <h3 class="font-bold text-lg mb-3 text-red-600">Emergency Help</h3>
+            
+            <button onclick="callKisanCallCenter()" class="w-full bg-red-100 text-red-700 p-3 rounded-lg mb-2 flex items-center">
+              <i class="fas fa-phone-alt mr-2"></i> Kisan Call Center (1800-180-1551)
+            </button>
+            
+            <button onclick="showNearestHospitals()" class="w-full bg-blue-100 text-blue-700 p-3 rounded-lg mb-2 flex items-center">
+              <i class="fas fa-hospital mr-2"></i> Nearest Hospitals
+            </button>
+            
+            <button onclick="showDisasterRelief()" class="w-full bg-green-100 text-green-700 p-3 rounded-lg mb-2 flex items-center">
+              <i class="fas fa-hands-helping mr-2"></i> Disaster Relief
+            </button>
+            
+            <button onclick="hideEmergencyOptions()" class="w-full bg-gray-100 text-gray-700 p-3 rounded-lg mt-3">
+              Cancel
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', options);
+    }
+    
+    function hideEmergencyOptions() {
+      document.querySelector('.fixed.inset-0').remove();
+    }
+    
+    function callKisanCallCenter() {
+      window.open('tel:18001801551');
+      hideEmergencyOptions();
+    }
+    
+    function showNearestHospitals() {
+      alert("Showing nearest hospitals on map...");
+      // In real app, would open map with hospital locations
+      hideEmergencyOptions();
+    }
+    
+    function showDisasterRelief() {
+      alert("Connecting to disaster relief services...");
+      // In real app, would show relief options
+      hideEmergencyOptions();
+    }
+
+    // AI Price Advisor Modal
+    function openAIPriceAdvisor() {
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">AI Fair Price Advisor</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Select Your Crop</label>
+                <select id="priceCrop" class="w-full p-2 border rounded-lg">
+                  ${userData.crops.map(crop => `<option>${crop}</option>`).join('')}
+                </select>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Quality (1-10)</label>
+                <input type="range" id="priceQuality" min="1" max="10" value="7" class="w-full">
+                <div class="flex justify-between text-xs text-gray-500">
+                  <span>Poor</span>
+                  <span>Average</span>
+                  <span>Excellent</span>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Quantity (kg)</label>
+                <input type="number" id="priceQuantity" value="100" class="w-full p-2 border rounded-lg">
+              </div>
+              
+              <button onclick="calculateFairPrice()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+                Calculate Best Price
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+    }
+    
+    function calculateFairPrice() {
+      const crop = document.getElementById('priceCrop').value;
+      const quality = document.getElementById('priceQuality').value;
+      const quantity = document.getElementById('priceQuantity').value;
+      
+      // Calculate based on quality and market data
+      const basePrice = marketData.crops[crop] || { min: 100, max: 120 };
+      let minPrice = basePrice.min;
+      let maxPrice = basePrice.max;
+      
+      // Adjust for quality (1-10 scale)
+      minPrice *= (0.7 + (quality * 0.03));
+      maxPrice *= (0.7 + (quality * 0.03));
+      
+      // In a real app, would call backend API
+      const result = `
+        <div class="p-5">
+          <div class="text-center mb-4">
+            <div class="text-sm text-gray-500">AI Recommended Price Range</div>
+            <div class="text-2xl font-bold text-green-600">₹${Math.round(minPrice)} - ₹${Math.round(maxPrice)}/kg</div>
+          </div>
+          
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span>Mandi Average:</span>
+              <span>₹${basePrice.min}/${marketData.crops[crop].unit}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Retail Price:</span>
+              <span>₹${Math.round(basePrice.max * 1.2)}/${marketData.crops[crop].unit}</span>
+            </div>
+            <div class="flex justify-between font-bold">
+              <span>Your Profit Potential:</span>
+              <span class="text-green-600">+${Math.round(((maxPrice - basePrice.min) / basePrice.min) * 100)}%</span>
+            </div>
+          </div>
+          
+          <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+            <div class="font-bold mb-1">Selling Strategy</div>
+            <div class="text-sm">
+              ${getSellingStrategy(crop, minPrice, maxPrice)}
+            </div>
+          </div>
+          
+          <button onclick="showBuyers()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+            Show Interested Buyers
+          </button>
+        </div>
+      `;
+      
+      document.querySelector('.fixed .bg-white .p-5').innerHTML = result;
+    }
+    
+    function getSellingStrategy(crop, minPrice, maxPrice) {
+      if (crop === "Tomato") {
+        return `For tomatoes, consider selling 50% now at ₹${Math.round(minPrice)}/kg and hold 50% to target ₹${Math.round(maxPrice)}/kg in 1-2 weeks when prices typically peak.`;
+      } else if (crop === "Paddy") {
+        return "Government MSP ensures stable prices. Sell now to avoid storage costs unless you have proper facilities.";
+      } else {
+        return `Current market conditions favor selling now. You could get ₹${Math.round(maxPrice)}/${marketData.crops[crop].unit} by selling directly to processors.`;
+      }
+    }
+    
+    function showBuyers() {
+      alert(`Showing buyers willing to pay your target price. In a real implementation, this would filter buyers.`);
+      closeModal();
+      document.querySelector('[aria-label="buyers title"]').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Government Schemes Check
+    function checkSchemes() {
+      const schemes = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Eligible Government Schemes</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="space-y-4">
+                ${schemesData.map(scheme => `
+                  <div class="border rounded-lg p-3">
+                    <div class="font-bold text-green-700">${scheme.name}</div>
+                    <div class="text-sm mb-2">${scheme.description}</div>
+                    <div class="text-xs text-gray-500">Status: <span class="${scheme.status === 'Eligible' ? 'text-green-600' : 'text-blue-600'}">${scheme.status}</span></div>
+                    <button onclick="window.open('${scheme.link}', '_blank')" class="text-blue-600 text-xs mt-2">
+                      ${scheme.status === 'Eligible' ? 'Apply Now' : 'Learn More'}
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+              
+              <button onclick="closeModal()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', schemes);
+    }
+
+    // Crop Doctor Functionality
+    function openCropDoctor() {
+      const modal = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div class="bg-white rounded-xl w-full max-w-md">
+            <div class="p-5">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg">Crop Doctor</h3>
+                <button onclick="closeModal()" class="text-gray-500">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              
+              <div class="text-center mb-5">
+                <div class="text-sm mb-2">Upload photo of affected crop</div>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center cursor-pointer" onclick="simulateImageUpload()">
+                  <i class="fas fa-camera text-3xl text-gray-400 mb-2"></i>
+                  <div class="text-gray-500">Tap to take or upload photo</div>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <button onclick="describeProblem('pest')" class="border rounded-lg p-3 flex flex-col items-center">
+                  <i class="fas fa-bug text-red-500 text-xl mb-1"></i>
+                  <span class="text-xs">Pest Attack</span>
+                </button>
+                
+                <button onclick="describeProblem('nutrient')" class="border rounded-lg p-3 flex flex-col items-center">
+                  <i class="fas fa-leaf text-yellow-500 text-xl mb-1"></i>
+                  <span class="text-xs">Nutrient Deficiency</span>
+                </button>
+                
+                <button onclick="describeProblem('water')" class="border rounded-lg p-3 flex flex-col items-center">
+                  <i class="fas fa-tint text-blue-500 text-xl mb-1"></i>
+                  <span class="text-xs">Water Stress</span>
+                </button>
+                
+                <button onclick="describeProblem('disease')" class="border rounded-lg p-3 flex flex-col items-center">
+                  <i class="fas fa-virus text-green-500 text-xl mb-1"></i>
+                  <span class="text-xs">Disease</span>
+                </button>
+              </div>
+              
+              <button onclick="analyzeCropProblem()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+                Analyze Problem
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', modal);
+    }
+    
+    function simulateImageUpload() {
+      showLoading();
+      setTimeout(() => {
+        hideLoading();
+        analyzeCropProblem();
+      }, 2000);
+    }
+    
+    function describeProblem(type) {
+      let description = "";
+      let crop = userData.crops[0]; // Default to first crop
+      
+      if (type === "pest") {
+        description = `My ${crop} plants have small holes in leaves and visible insects.`;
+      } else if (type === "nutrient") {
+        description = `The leaves of my ${crop} plants are turning yellow and growth seems stunted.`;
+      } else if (type === "water") {
+        description = `The ${crop} plants are wilting, with some leaves turning brown at edges.`;
+      } else if (type === "disease") {
+        description = `I see spots and unusual growths on my ${crop} plants.`;
+      }
+      
+      // In a real app, would store this description for analysis
+      alert(`Problem described: ${description}. Now analyzing...`);
+      analyzeCropProblem();
+    }
+    
+    function analyzeCropProblem() {
+      // In real app, would call computer vision API
+      const result = `
+        <div class="p-5">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-lg">Diagnosis Results</h3>
+            <button onclick="closeModal()" class="text-gray-500">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          
+          <div class="mb-4 p-3 bg-yellow-50 rounded-lg">
+            <div class="font-bold mb-1">Tomato Leaf Miner Attack</div>
+            <div class="text-sm">85% confidence</div>
+          </div>
+          
+          <div class="space-y-3">
+            <div class="font-medium">Recommended Treatment:</div>
+            <ul class="list-disc pl-5 text-sm space-y-1">
+              <li>Spray Neem Oil (5ml/liter) every 7 days</li>
+              <li>Remove and destroy affected leaves</li>
+              <li>Use yellow sticky traps</li>
+            </ul>
+            
+            <div class="font-medium mt-3">Preventive Measures:</div>
+            <ul class="list-disc pl-5 text-sm space-y-1">
+              <li>Crop rotation with non-host plants</li>
+              <li>Use resistant varieties next season</li>
+            </ul>
+          </div>
+          
+          <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+            <div class="font-bold mb-1">Buy Treatment Products</div>
+            <div class="text-sm">
+              <button onclick="findAgriProducts('Neem Oil')" class="text-blue-600 underline">Find neem oil sellers near you</button>
+            </div>
+          </div>
+          
+          <button onclick="closeModal()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+            Close
+          </button>
+        </div>
+      `;
+      
+      document.querySelector('.fixed .bg-white .p-5').innerHTML = result;
+    }
+    
+    function openMarketPage(e) {
+  e.preventDefault();
+  showLoading();
+  setTimeout(() => {
+    hideLoading();
+    // In a real app, this would load market.html or fetch market data
+    // For demo, we'll show a modal with market features
+    const modal = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <div class="p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-lg">Marketplace</h3>
+              <button onclick="closeModal()" class="text-gray-500">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="space-y-4">
+              <div onclick="openMandiPrices()" class="farmer-card p-3 flex items-center cursor-pointer">
+                <div class="bg-amber-100 p-3 rounded-full mr-3">
+                  <i class="fas fa-balance-scale text-amber-600"></i>
+                </div>
+                <div>
+                  <div class="font-bold">Mandi Prices</div>
+                  <div class="text-xs text-gray-500">Live commodity prices</div>
+                </div>
+              </div>
+              
+              <div onclick="showBuyers()" class="farmer-card p-3 flex items-center cursor-pointer">
+                <div class="bg-green-100 p-3 rounded-full mr-3">
+                  <i class="fas fa-users text-green-600"></i>
+                </div>
+                <div>
+                  <div class="font-bold">Find Buyers</div>
+                  <div class="text-xs text-gray-500">Connect with local purchasers</div>
+                </div>
+              </div>
+              
+              <div onclick="openSellNow()" class="farmer-card p-3 flex items-center cursor-pointer">
+                <div class="bg-blue-100 p-3 rounded-full mr-3">
+                  <i class="fas fa-rupee-sign text-blue-600"></i>
+                </div>
+                <div>
+                  <div class="font-bold">Sell Produce</div>
+                  <div class="text-xs text-gray-500">List your crops for sale</div>
+                </div>
+              </div>
+              
+              <div onclick="openAIPriceAdvisor()" class="farmer-card p-3 flex items-center cursor-pointer">
+                <div class="bg-purple-100 p-3 rounded-full mr-3">
+                  <i class="fas fa-robot text-purple-600"></i>
+                </div>
+                <div>
+                  <div class="font-bold">Price Advisor</div>
+                  <div class="text-xs text-gray-500">Get optimal selling recommendations</div>
+                </div>
+              </div>
+            </div>
+            
+            <button onclick="closeModal()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 800);
+}
+
+function openEducationPage(e) {
+  e.preventDefault();
+  showLoading();
+  setTimeout(() => {
+    hideLoading();
+    // In a real app, this would load education.html or fetch educational content
+    // For demo, we'll show a modal with learning resources
+    const modal = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <div class="p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-lg">Learning Center</h3>
+              <button onclick="closeModal()" class="text-gray-500">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="space-y-4">
+              <div onclick="openCropCare()" class="farmer-card p-3 flex items-center cursor-pointer">
+                <div class="bg-emerald-100 p-3 rounded-full mr-3">
+                  <i class="fas fa-seedling text-emerald-600"></i>
+                </div>
+                <div>
+                  <div class="font-bold">Crop Guides</div>
+                  <div class="text-xs text-gray-500">Detailed cultivation practices</div>
+                </div>
+              </div>
+              
+              <div onclick="window.open('https://www.youtube.com/results?search_query=modern+farming+techniques', '_blank')" 
+                   class="farmer-card p-3 flex items-center cursor-pointer">
+                <div class="bg-red-100 p-3 rounded-full mr-3">
+                  <i class="fab fa-youtube text-red-600"></i>
+                </div>
+                <div>
+                  <div class="font-bold">Video Tutorials</div>
+                  <div class="text-xs text-gray-500">Watch farming techniques</div>
+                </div>
+              </div>
+              
+              <div onclick="checkSchemes()" class="farmer-card p-3 flex items-center cursor-pointer">
+                <div class="bg-blue-100 p-3 rounded-full mr-3">
+                  <i class="fas fa-landmark text-blue-600"></i>
+                </div>
+                <div>
+                  <div class="font-bold">Govt Schemes</div>
+                  <div class="text-xs text-gray-500">Learn about subsidies & programs</div>
+                </div>
+              </div>
+              
+              <div onclick="openWeatherForecast()" class="farmer-card p-3 flex items-center cursor-pointer">
+                <div class="bg-teal-100 p-3 rounded-full mr-3">
+                  <i class="fas fa-cloud-sun-rain text-teal-600"></i>
+                </div>
+                <div>
+                  <div class="font-bold">Weather Impact</div>
+                  <div class="text-xs text-gray-500">How climate affects your crops</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mt-5 p-3 bg-yellow-50 rounded-lg">
+              <div class="font-bold mb-2">Featured Article</div>
+              <div class="text-sm mb-2">"5 Ways to Increase Tomato Yield Using Organic Methods"</div>
+              <button onclick="window.open('https://www.krishijagran.com/featured/organic-farming-methods-to-increase-tomato-yield/', '_blank')" 
+                      class="text-blue-600 text-xs underline">
+                Read Full Article
+              </button>
+            </div>
+            
+            <button onclick="closeModal()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 800);
+}
+
+function openProfilePage(e) {
+  e.preventDefault();
+  showLoading();
+  setTimeout(() => {
+    hideLoading();
+    // In a real app, this would load profile.html or fetch profile data
+    // For demo, we'll show a modal with profile information
+    const modal = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <div class="p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-lg">Your Profile</h3>
+              <button onclick="closeModal()" class="text-gray-500">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="flex items-center mb-5">
+              <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" class="w-16 h-16 rounded-full border-2 border-green-500 mr-3">
+              <div>
+                <div class="font-bold text-lg">${userData.name}</div>
+                <div class="text-sm text-gray-600 flex items-center">
+                  <i class="fas fa-location-dot mr-1"></i> ${userData.location}
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Member since: Jan 2023</div>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-5">
+              <div class="border rounded-lg p-3 text-center">
+                <div class="text-xs text-gray-500">Total Earnings</div>
+                <div class="font-bold text-green-600">₹${userData.monthlyEarnings * 6}</div>
+                <div class="text-xs">(Last 6 months)</div>
+              </div>
+              
+              <div class="border rounded-lg p-3 text-center">
+                <div class="text-xs text-gray-500">Active Listings</div>
+                <div class="font-bold text-blue-600">${userData.crops.length}</div>
+                <div class="text-xs">Crops for sale</div>
+              </div>
+            </div>
+            
+            <div class="space-y-3">
+              <div class="font-medium">Your Crops</div>
+              <div class="flex flex-wrap gap-2">
+                ${userData.crops.map(crop => `
+                  <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs">
+                    ${crop}
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+            
+            <div class="mt-5 space-y-3">
+              <button onclick="editProfile()" class="w-full border border-green-600 text-green-600 p-2 rounded-lg font-bold">
+                <i class="fas fa-edit mr-2"></i> Edit Profile
+              </button>
+              
+              <button onclick="openFarmDetails()" class="w-full border border-blue-600 text-blue-600 p-2 rounded-lg font-bold">
+                <i class="fas fa-tractor mr-2"></i> Farm Details
+              </button>
+              
+              <button onclick="openSettings()" class="w-full border border-gray-600 text-gray-600 p-2 rounded-lg font-bold">
+                <i class="fas fa-cog mr-2"></i> Settings
+              </button>
+            </div>
+            
+            <button onclick="closeModal()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 800);
+}
+
+// Marketplace Data
+const marketplaceData = {
+  categories: [
+    { id: 1, name: "Fruits", icon: "fa-apple-alt" },
+    { id: 2, name: "Vegetables", icon: "fa-carrot" },
+    { id: 3, name: "Grains & Cereals", icon: "fa-wheat" },
+    { id: 4, name: "Herbicides/Pesticides", icon: "fa-spray-can" },
+    { id: 5, name: "Seeds", icon: "fa-seedling" },
+    { id: 6, name: "Farm Machinery", icon: "fa-tractor" }
+  ],
+  
+  products: {
+    fruits: [
+      {
+        id: 101,
+        name: "Organic Mangoes",
+        farmer: {
+          id: 1001,
+          name: "Raju Farms",
+          location: "Nalgonda, Telangana",
+          rating: 4.5,
+          joined: "2021",
+          image: "https://randomuser.me/api/portraits/men/32.jpg"
+        },
+        price: 120,
+        unit: "kg",
+        description: "Fresh organic mangoes from our farm. Grown without chemical pesticides. Alphonso variety with sweet taste and rich aroma.",
+        images: [
+          "https://cdn.pixabay.com/photo/2016/03/05/22/18/food-1239241_640.jpg",
+          "https://cdn.pixabay.com/photo/2018/04/29/11/54/mangoes-3359755_640.jpg"
+        ],
+        stock: 150,
+        discount: 10,
+        rating: 4.7,
+        reviews: 24,
+        delivery: "Same day harvest"
+      },
+      {
+        id: 102,
+        name: "Bananas (Bunch)",
+        farmer: {
+          id: 1002,
+          name: "Gopal Fruit Farms",
+          location: "Khammam, Telangana",
+          rating: 4.2,
+          joined: "2020",
+          image: "https://randomuser.me/api/portraits/men/45.jpg"
+        },
+        price: 60,
+        unit: "bunch",
+        description: "Naturally ripened bananas. Each bunch contains 12-15 bananas. Rich in potassium and other nutrients.",
+        images: [
+          "https://cdn.pixabay.com/photo/2017/06/27/22/21/banana-2449019_640.jpg"
+        ],
+        stock: 80,
+        discount: 0,
+        rating: 4.3,
+        reviews: 18,
+        delivery: "Next day delivery"
+      }
+    ],
+    vegetables: [
+      {
+        id: 201,
+        name: "Organic Tomatoes",
+        farmer: {
+          id: 1003,
+          name: "Sri Lakshmi Farms",
+          location: "Medak, Telangana",
+          rating: 4.8,
+          joined: "2019",
+          image: "https://randomuser.me/api/portraits/women/43.jpg"
+        },
+        price: 40,
+        unit: "kg",
+        description: "Fresh organic tomatoes grown with natural fertilizers. Firm texture and rich flavor perfect for curries and salads.",
+        images: [
+          "https://cdn.pixabay.com/photo/2011/03/16/15/44/tomatoes-5356_640.jpg"
+        ],
+        stock: 200,
+        discount: 5,
+        rating: 4.6,
+        reviews: 32,
+        delivery: "Harvested on order"
+      }
+    ],
+    // Add more products for other categories...
+  },
+  
+  deals: [
+    {
+      id: 501,
+      title: "Monsoon Special",
+      description: "10% off on all seeds this week",
+      category: "Seeds",
+      discount: 10,
+      image: "https://cdn.pixabay.com/photo/2017/07/03/13/57/seeds-2466990_640.jpg"
+    },
+    {
+      id: 502,
+      title: "New Farmer Offer",
+      description: "5% off first purchase from new farmers",
+      category: "All",
+      discount: 5,
+      image: "https://cdn.pixabay.com/photo/2016/11/29/08/42/agriculture-1869213_640.jpg"
+    }
+  ]
+};
+
+// Shopping Cart
+let shoppingCart = [];
+
+function openMarketPage(e) {
+  e.preventDefault();
+  showLoading();
+  setTimeout(() => {
+    hideLoading();
+    
+    const modal = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <div class="p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-lg">Farmers Market</h3>
+              <button onclick="closeModal()" class="text-gray-500">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="mb-4">
+              <input type="text" placeholder="Search for produce..." class="w-full p-2 border rounded-lg">
+            </div>
+            
+            <h4 class="font-bold mb-2">Categories</h4>
+            <div class="grid grid-cols-3 gap-3 mb-5">
+              ${marketplaceData.categories.map(category => `
+                <div onclick="openCategory('${category.name.toLowerCase()}')" class="farmer-card flex flex-col items-center p-3 cursor-pointer">
+                  <div class="bg-green-100 p-3 rounded-full mb-2">
+                    <i class="fas ${category.icon} text-green-600 text-xl"></i>
+                  </div>
+                  <span class="text-xs font-semibold text-center">${category.name}</span>
+                </div>
+              `).join('')}
+            </div>
+            
+            <h4 class="font-bold mb-2">Special Offers</h4>
+            <div class="space-y-3 mb-4">
+              ${marketplaceData.deals.map(deal => `
+                <div class="relative rounded-lg overflow-hidden h-24">
+                  <img src="${deal.image}" class="w-full h-full object-cover">
+                  <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center p-3">
+                    <div class="text-white">
+                      <div class="font-bold">${deal.title}</div>
+                      <div class="text-sm">${deal.description}</div>
+                    </div>
+                  </div>
+                  <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    ${deal.discount}% OFF
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            
+            <h4 class="font-bold mb-2">Recommended For You</h4>
+            <div class="space-y-3">
+              ${marketplaceData.products.fruits.slice(0, 2).map(product => `
+                <div onclick="openProductDetail(${product.id}, 'fruits')" class="farmer-card p-3 flex cursor-pointer">
+                  <img src="${product.images[0]}" class="w-16 h-16 rounded-lg object-cover mr-3">
+                  <div class="flex-1">
+                    <div class="font-bold">${product.name}</div>
+                    <div class="text-sm text-gray-600">${product.farmer.name}</div>
+                    <div class="flex items-center mt-1">
+                      <div class="font-bold text-green-600">₹${product.price}/${product.unit}</div>
+                      ${product.discount > 0 ? `
+                        <span class="ml-2 text-xs line-through text-gray-500">₹${(product.price/(1-product.discount/100)).toFixed(2)}</span>
+                        <span class="ml-1 text-xs bg-green-100 text-green-800 px-1 rounded">${product.discount}% OFF</span>
+                      ` : ''}
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 500);
+}
+
+function openCategory(categoryName) {
+  closeModal();
+  showLoading();
+  
+  setTimeout(() => {
+    hideLoading();
+    
+    const products = marketplaceData.products[categoryName] || [];
+    
+    const modal = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <div class="p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-lg">${categoryName.charAt(0).toUpperCase() + categoryName.slice(1)}</h3>
+              <button onclick="closeModal()" class="text-gray-500">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            ${products.length > 0 ? `
+              <div class="space-y-3">
+                ${products.map(product => `
+                  <div onclick="openProductDetail(${product.id}, '${categoryName}')" class="farmer-card p-3 flex cursor-pointer">
+                    <img src="${product.images[0]}" class="w-16 h-16 rounded-lg object-cover mr-3">
+                    <div class="flex-1">
+                      <div class="font-bold">${product.name}</div>
+                      <div class="text-sm text-gray-600">${product.farmer.name}</div>
+                      <div class="flex items-center mt-1">
+                        <div class="font-bold text-green-600">₹${product.price}/${product.unit}</div>
+                        ${product.discount > 0 ? `
+                          <span class="ml-2 text-xs line-through text-gray-500">₹${(product.price/(1-product.discount/100)).toFixed(2)}</span>
+                          <span class="ml-1 text-xs bg-green-100 text-green-800 px-1 rounded">${product.discount}% OFF</span>
+                        ` : ''}
+                      </div>
+                      <div class="flex items-center mt-1">
+                        <div class="text-yellow-400 text-sm">
+                          ${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5-Math.floor(product.rating))}
+                        </div>
+                        <span class="text-xs text-gray-500 ml-1">(${product.reviews})</span>
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : `
+              <div class="text-center py-10">
+                <i class="fas fa-box-open text-4xl text-gray-300 mb-3"></i>
+                <div class="text-gray-500">No products available in this category</div>
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 500);
+}
+
+function openProductDetail(productId, category) {
+  closeModal();
+  showLoading();
+  
+  setTimeout(() => {
+    hideLoading();
+    
+    const product = marketplaceData.products[category].find(p => p.id === productId);
+    
+    const modal = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <div class="p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-lg">${product.name}</h3>
+              <button onclick="closeModal()" class="text-gray-500">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="mb-4">
+              <div class="relative h-48 bg-gray-100 rounded-lg overflow-hidden mb-2">
+                <img src="${product.images[0]}" class="w-full h-full object-cover">
+              </div>
+              <div class="flex space-x-2">
+                ${product.images.slice(0, 3).map(img => `
+                  <div class="w-1/3 h-16 bg-gray-100 rounded overflow-hidden">
+                    <img src="${img}" class="w-full h-full object-cover">
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            
+            <div class="flex justify-between items-center mb-3">
+              <div>
+                <div class="font-bold text-green-600 text-xl">₹${product.price}/${product.unit}</div>
+                ${product.discount > 0 ? `
+                  <div class="text-xs text-gray-500">
+                    <span class="line-through">₹${(product.price/(1-product.discount/100)).toFixed(2)}</span>
+                    <span class="ml-1 bg-green-100 text-green-800 px-1 rounded">${product.discount}% OFF</span>
+                  </div>
+                ` : ''}
+              </div>
+              <div class="text-yellow-400">
+                ${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5-Math.floor(product.rating))}
+                <span class="text-xs text-gray-500">(${product.reviews})</span>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <h4 class="font-bold mb-1">Description</h4>
+              <p class="text-sm">${product.description}</p>
+            </div>
+            
+            <div class="mb-4">
+              <h4 class="font-bold mb-1">Delivery</h4>
+              <p class="text-sm flex items-center">
+                <i class="fas fa-truck mr-2 text-green-600"></i> ${product.delivery}
+              </p>
+            </div>
+            
+            <div onclick="openFarmerProfile(${product.farmer.id})" class="farmer-card p-3 flex items-center mb-4 cursor-pointer">
+              <img src="${product.farmer.image}" class="w-12 h-12 rounded-full mr-3">
+              <div>
+                <div class="font-bold">Sold by ${product.farmer.name}</div>
+                <div class="text-xs text-gray-600 flex items-center">
+                  <i class="fas fa-location-dot mr-1"></i> ${product.farmer.location}
+                </div>
+                <div class="text-xs text-gray-600 flex items-center mt-1">
+                  <i class="fas fa-star text-yellow-400 mr-1"></i> ${product.farmer.rating} | Member since ${product.farmer.joined}
+                </div>
+              </div>
+              <i class="fas fa-chevron-right ml-auto text-gray-400"></i>
+            </div>
+            
+            <div class="flex items-center justify-between mb-4">
+              <div class="text-sm">Available: ${product.stock} ${product.unit}</div>
+              <div class="flex items-center">
+                <button onclick="adjustQuantity(${product.id}, -1)" class="bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center">
+                  <i class="fas fa-minus text-gray-600"></i>
+                </button>
+                <span id="quantity-${product.id}" class="mx-3 font-medium">1</span>
+                <button onclick="adjustQuantity(${product.id}, 1)" class="bg-gray-200 w-8 h-8 rounded-full flex items-center justify-center">
+                  <i class="fas fa-plus text-gray-600"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="addToCart(${product.id}, '${category}')" class="bg-green-600 text-white p-3 rounded-lg font-bold">
+                Add to Cart
+              </button>
+              <button onclick="buyNow(${product.id}, '${category}')" class="bg-orange-500 text-white p-3 rounded-lg font-bold">
+                Buy Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 500);
+}
+
+function openFarmerProfile(farmerId) {
+  closeModal();
+  showLoading();
+  
+  setTimeout(() => {
+    hideLoading();
+    
+    // Find farmer from all products
+    let farmer = null;
+    for (const category in marketplaceData.products) {
+      const found = marketplaceData.products[category].find(p => p.farmer.id === farmerId);
+      if (found) {
+        farmer = found.farmer;
+        break;
+      }
+    }
+    
+    if (!farmer) {
+      alert("Farmer not found");
+      return;
+    }
+    
+    // Find farmer's products
+    const farmerProducts = [];
+    for (const category in marketplaceData.products) {
+      marketplaceData.products[category].forEach(p => {
+        if (p.farmer.id === farmerId) {
+          farmerProducts.push({...p, category});
+        }
+      });
+    }
+    
+    const modal = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <div class="p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-lg">Farmer Profile</h3>
+              <button onclick="closeModal()" class="text-gray-500">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div class="flex items-center mb-5">
+              <img src="${farmer.image}" class="w-16 h-16 rounded-full border-2 border-green-500 mr-3">
+              <div>
+                <div class="font-bold text-lg">${farmer.name}</div>
+                <div class="text-sm text-gray-600 flex items-center">
+                  <i class="fas fa-location-dot mr-1"></i> ${farmer.location}
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Member since ${farmer.joined}</div>
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-around mb-5 bg-green-50 p-3 rounded-lg">
+              <div class="text-center">
+                <div class="font-bold">${farmer.rating}</div>
+                <div class="text-xs text-gray-500">Rating</div>
+              </div>
+              <div class="text-center">
+                <div class="font-bold">${farmerProducts.length}</div>
+                <div class="text-xs text-gray-500">Products</div>
+              </div>
+              <div class="text-center">
+                <div class="font-bold">2 Years</div>
+                <div class="text-xs text-gray-500">Selling</div>
+              </div>
+            </div>
+            
+            <h4 class="font-bold mb-3">About</h4>
+            <p class="text-sm mb-5">${farmer.name} is a trusted farmer selling fresh, high-quality produce directly from their farm to consumers. Committed to sustainable farming practices.</p>
+            
+            <h4 class="font-bold mb-3">Products</h4>
+            <div class="space-y-3">
+              ${farmerProducts.slice(0, 3).map(product => `
+                <div onclick="openProductDetail(${product.id}, '${product.category}')" class="farmer-card p-3 flex cursor-pointer">
+                  <img src="${product.images[0]}" class="w-16 h-16 rounded-lg object-cover mr-3">
+                  <div class="flex-1">
+                    <div class="font-bold">${product.name}</div>
+                    <div class="text-sm text-gray-600">${product.description.substring(0, 50)}...</div>
+                    <div class="flex items-center mt-1">
+                      <div class="font-bold text-green-600">₹${product.price}/${product.unit}</div>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            
+            <button onclick="closeModal()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-5">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 500);
+}
+
+function adjustQuantity(productId, change) {
+  const quantityElement = document.getElementById(`quantity-${productId}`);
+  let quantity = parseInt(quantityElement.textContent) || 1;
+  quantity += change;
+  if (quantity < 1) quantity = 1;
+  quantityElement.textContent = quantity;
+}
+
+function addToCart(productId, category) {
+  const product = marketplaceData.products[category].find(p => p.id === productId);
+  const quantity = parseInt(document.getElementById(`quantity-${productId}`).textContent) || 1;
+  
+  // Check if already in cart
+  const existingItem = shoppingCart.find(item => item.id === productId);
+  if (existingItem) {
+    existingItem.quantity += quantity;
+  } else {
+    shoppingCart.push({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      unit: product.unit,
+      image: product.images[0],
+      farmer: product.farmer.name,
+      quantity: quantity
+    });
+  }
+  
+  updateCartCount();
+  alert(`${quantity} ${product.unit} of ${product.name} added to cart`);
+  closeModal();
+}
+
+function buyNow(productId, category) {
+  addToCart(productId, category);
+  openCart();
+}
+
+function openCart() {
+  closeModal();
+  showLoading();
+  
+  setTimeout(() => {
+    hideLoading();
+    
+    const total = shoppingCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const deliveryFee = total > 500 ? 0 : 50;
+    const grandTotal = total + deliveryFee;
+    
+    const modal = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+          <div class="p-5">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-bold text-lg">Your Cart (${shoppingCart.length})</h3>
+              <button onclick="closeModal()" class="text-gray-500">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            
+            ${shoppingCart.length > 0 ? `
+              <div class="space-y-3 mb-4">
+                ${shoppingCart.map((item, index) => `
+                  <div class="farmer-card p-3 flex">
+                    <img src="${item.image}" class="w-16 h-16 rounded-lg object-cover mr-3">
+                    <div class="flex-1">
+                      <div class="font-bold">${item.name}</div>
+                      <div class="text-sm text-gray-600">${item.farmer}</div>
+                      <div class="flex items-center justify-between mt-2">
+                        <div class="font-bold text-green-600">₹${item.price * item.quantity}</div>
+                        <div class="flex items-center">
+                          <button onclick="updateCartItem(${index}, -1)" class="bg-gray-200 w-6 h-6 rounded-full flex items-center justify-center">
+                            <i class="fas fa-minus text-gray-600 text-xs"></i>
+                          </button>
+                          <span class="mx-2">${item.quantity} ${item.unit}</span>
+                          <button onclick="updateCartItem(${index}, 1)" class="bg-gray-200 w-6 h-6 rounded-full flex items-center justify-center">
+                            <i class="fas fa-plus text-gray-600 text-xs"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <button onclick="removeFromCart(${index})" class="ml-2 text-gray-400">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+              
+              <div class="border-t border-gray-200 pt-3 mb-4">
+                <div class="flex justify-between mb-1">
+                  <span>Subtotal:</span>
+                  <span>₹${total.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between mb-1">
+                  <span>Delivery:</span>
+                  <span>₹${deliveryFee.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between font-bold text-lg mt-2">
+                  <span>Total:</span>
+                  <span>₹${grandTotal.toFixed(2)}</span>
+                </div>
+              </div>
+              
+              <div class="mb-4">
+                <h4 class="font-bold mb-2">Payment Method</h4>
+                <div class="grid grid-cols-2 gap-2">
+                  <button class="border rounded-lg p-2 flex items-center justify-center">
+                    <i class="fas fa-money-bill-wave text-green-600 mr-2"></i> Cash
+                  </button>
+                  <button class="border rounded-lg p-2 flex items-center justify-center">
+                    <i class="fas fa-credit-card text-blue-600 mr-2"></i> Card
+                  </button>
+                  <button class="border rounded-lg p-2 flex items-center justify-center">
+                    <i class="fas fa-mobile-alt text-purple-600 mr-2"></i> UPI
+                  </button>
+                  <button class="border rounded-lg p-2 flex items-center justify-center">
+                    <i class="fas fa-wallet text-orange-600 mr-2"></i> Wallet
+                  </button>
+                </div>
+              </div>
+              
+              <button onclick="checkout()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+                Proceed to Checkout (₹${grandTotal.toFixed(2)})
+              </button>
+            ` : `
+              <div class="text-center py-10">
+                <i class="fas fa-shopping-cart text-4xl text-gray-300 mb-3"></i>
+                <div class="text-gray-500">Your cart is empty</div>
+                <button onclick="openMarketPage(event)" class="mt-3 bg-green-600 text-white px-4 py-2 rounded-lg">
+                  Continue Shopping
+                </button>
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 500);
+}
+
+function updateCartItem(index, change) {
+  const item = shoppingCart[index];
+  item.quantity += change;
+  
+  if (item.quantity < 1) {
+    shoppingCart.splice(index, 1);
+  }
+  
+  updateCartCount();
+  openCart(); // Refresh cart view
+}
+
+function removeFromCart(index) {
+  shoppingCart.splice(index, 1);
+  updateCartCount();
+  openCart(); // Refresh cart view
+}
+
+function updateCartCount() {
+  const totalItems = shoppingCart.reduce((sum, item) => sum + item.quantity, 0);
+  document.getElementById('cartCount').textContent = totalItems;
+  localStorage.setItem('shoppingCart', JSON.stringify(shoppingCart));
+}
+
+function checkout() {
+  showLoading();
+  setTimeout(() => {
+    hideLoading();
+    alert(`Order placed successfully! ₹${shoppingCart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)} will be collected on delivery.`);
+    shoppingCart = [];
+    updateCartCount();
+    closeModal();
+  }, 1500);
+}
+
+// Initialize cart from localStorage
+document.addEventListener('DOMContentLoaded', function() {
+  const savedCart = localStorage.getItem('shoppingCart');
+  if (savedCart) {
+    shoppingCart = JSON.parse(savedCart);
+    updateCartCount();
+  }
+});
+
+// Enhanced Sell Now Functionality
+function openSellNow(e) {
+  e.preventDefault();
+  
+  const modal = `
+    <div class="fixed inset-0 bg-white z-50 overflow-y-auto">
+      <!-- Header with back button and title -->
+      <div class="bg-green-600 text-white p-4 flex items-center shadow-md">
+        <button onclick="closeModal()" class="mr-4">
+          <i class="fas fa-arrow-left text-xl"></i>
+        </button>
+        <h2 class="text-xl font-bold">Sell Your Produce</h2>
+      </div>
+      
+      <!-- Main Form Content -->
+      <div class="p-4">
+        <!-- Step 1: Upload Photos -->
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-3 flex items-center">
+            <span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2">1</span>
+            Upload Photos
+          </h3>
+          <div class="grid grid-cols-3 gap-2 mb-2">
+            <div id="mainPhoto" class="relative col-span-3 h-48 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
+              <div class="text-center">
+                <i class="fas fa-camera text-3xl text-gray-400 mb-2"></i>
+                <div class="text-gray-500">Tap to add main photo</div>
+              </div>
+              <input type="file" id="photoUpload" accept="image/*" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer" onchange="previewPhoto(event, 'mainPhoto')">
+            </div>
+            <div class="relative h-24 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
+              <i class="fas fa-plus text-gray-400"></i>
+              <input type="file" accept="image/*" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer" onchange="previewPhoto(event, 'photo1')">
+            </div>
+            <div class="relative h-24 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
+              <i class="fas fa-plus text-gray-400"></i>
+              <input type="file" accept="image/*" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer" onchange="previewPhoto(event, 'photo2')">
+            </div>
+            <div class="relative h-24 bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 flex items-center justify-center">
+              <i class="fas fa-plus text-gray-400"></i>
+              <input type="file" accept="image/*" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer" onchange="previewPhoto(event, 'photo3')">
+            </div>
+          </div>
+          <div class="text-xs text-gray-500">Add clear photos from different angles (max 4)</div>
+        </div>
+        
+        <!-- Step 2: Product Details -->
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-3 flex items-center">
+            <span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2">2</span>
+            Product Details
+          </h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">Product Title*</label>
+              <input type="text" id="productTitle" placeholder="e.g., Organic Alphonso Mangoes" class="w-full p-3 border rounded-lg">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">Description*</label>
+              <textarea id="productDescription" rows="3" placeholder="Describe your product in detail (quality, variety, growing method, etc.)" class="w-full p-3 border rounded-lg"></textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">Category*</label>
+              <select id="productCategory" class="w-full p-3 border rounded-lg">
+                <option value="">Select category</option>
+                <option>Fruits</option>
+                <option>Vegetables</option>
+                <option>Grains & Cereals</option>
+                <option>Herbs & Spices</option>
+                <option>Dairy Products</option>
+                <option>Other</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">Crop Type*</label>
+              <input type="text" id="cropType" placeholder="e.g., Alphonso Mango, Basmati Rice" class="w-full p-3 border rounded-lg">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Step 3: Quantity & Quality -->
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-3 flex items-center">
+            <span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2">3</span>
+            Quantity & Quality
+          </h3>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">Quantity*</label>
+              <div class="flex">
+                <input type="number" id="productQuantity" value="1" min="1" class="flex-1 p-3 border rounded-l-lg">
+                <select id="quantityUnit" class="w-24 p-3 border-t border-b border-r rounded-r-lg">
+                  <option>kg</option>
+                  <option>g</option>
+                  <option>quintal</option>
+                  <option>ton</option>
+                  <option>piece</option>
+                  <option>bunch</option>
+                  <option>box</option>
+                </select>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">Quality*</label>
+              <select id="productQuality" class="w-full p-3 border rounded-lg">
+                <option value="">Select quality</option>
+                <option>Grade A (Premium)</option>
+                <option>Grade B (Good)</option>
+                <option>Grade C (Standard)</option>
+                <option>Organic Certified</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="mt-4">
+            <label class="block text-sm font-medium mb-1">Harvest Date</label>
+            <input type="date" id="harvestDate" class="w-full p-3 border rounded-lg">
+          </div>
+        </div>
+        
+        <!-- Step 4: Pricing -->
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-3 flex items-center">
+            <span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2">4</span>
+            Pricing
+          </h3>
+          
+          <div class="bg-blue-50 p-3 rounded-lg mb-4">
+            <div class="flex justify-between items-center mb-1">
+              <span class="font-medium">Current Market Price:</span>
+              <span class="font-bold">₹120-150/kg</span>
+            </div>
+            <div class="text-xs text-gray-600">Based on today's rates in your area</div>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">Your Price* (per unit)</label>
+              <input type="number" id="productPrice" placeholder="Enter price" class="w-full p-3 border rounded-lg">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">Negotiable?</label>
+              <div class="flex space-x-4 mt-2">
+                <label class="flex items-center">
+                  <input type="radio" name="negotiable" value="yes" checked class="mr-2">
+                  <span>Yes, buyers can negotiate</span>
+                </label>
+                <label class="flex items-center">
+                  <input type="radio" name="negotiable" value="no" class="mr-2">
+                  <span>Fixed Price</span>
+                </label>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">Minimum Order</label>
+              <input type="number" id="minOrder" value="1" min="1" class="w-full p-3 border rounded-lg">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Step 5: Delivery -->
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-3 flex items-center">
+            <span class="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center mr-2">5</span>
+            Delivery Options
+          </h3>
+          
+          <div class="space-y-3">
+            <label class="flex items-start p-3 border rounded-lg">
+              <input type="checkbox" class="mt-1 mr-3">
+              <div>
+                <div class="font-medium">I can deliver</div>
+                <div class="text-xs text-gray-600">You'll arrange transportation to buyer's location</div>
+              </div>
+            </label>
+            
+            <label class="flex items-start p-3 border rounded-lg">
+              <input type="checkbox" class="mt-1 mr-3" checked>
+              <div>
+                <div class="font-medium">Buyer pickup</div>
+                <div class="text-xs text-gray-600">Buyer will collect from your farm/location</div>
+              </div>
+            </label>
+            
+            <div id="deliveryOptions" class="hidden">
+              <div class="mt-2">
+                <label class="block text-sm font-medium mb-1">Delivery Charges</label>
+                <input type="number" id="deliveryCharge" placeholder="Enter delivery fee" class="w-full p-3 border rounded-lg">
+              </div>
+              
+              <div class="mt-2">
+                <label class="block text-sm font-medium mb-1">Delivery Radius (km)</label>
+                <input type="number" id="deliveryRadius" placeholder="Maximum distance you'll deliver" class="w-full p-3 border rounded-lg">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <button onclick="submitListing()" class="w-full bg-green-600 text-white p-4 rounded-lg font-bold text-lg">
+          Publish Listing
+        </button>
+        
+        <div class="text-xs text-gray-500 mt-3 text-center">
+          By publishing, you agree to our Terms of Service and confirm this listing complies with all applicable laws.
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modal);
+  
+  // Set default harvest date to today
+  document.getElementById('harvestDate').valueAsDate = new Date();
+  
+  // Show/hide delivery options based on checkbox
+  document.querySelector('input[type="checkbox"]').addEventListener('change', function() {
+    document.getElementById('deliveryOptions').classList.toggle('hidden', !this.checked);
+  });
+}
+
+function previewPhoto(event, targetId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const target = document.getElementById(targetId);
+    target.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+    target.classList.remove('border-dashed', 'border-gray-300');
+    target.classList.add('border-solid', 'border-green-200');
+  };
+  reader.readAsDataURL(file);
+}
+
+function submitListing() {
+  // Validate form
+  const title = document.getElementById('productTitle').value;
+  const description = document.getElementById('productDescription').value;
+  const category = document.getElementById('productCategory').value;
+  const price = document.getElementById('productPrice').value;
+  
+  if (!title || !description || !category || !price) {
+    alert('Please fill in all required fields');
+    return;
+  }
+  
+  showLoading();
+  
+  // In a real app, this would upload to server
+  setTimeout(() => {
+    hideLoading();
+    
+    // Show success message
+    const successMsg = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full max-w-md p-5 text-center">
+          <div class="text-green-500 text-5xl mb-3">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h3 class="font-bold text-xl mb-2">Listing Published!</h3>
+          <p class="mb-4">Your ${title} is now visible to buyers in your area.</p>
+          
+          <div class="bg-green-50 p-3 rounded-lg mb-4 text-left">
+            <div class="font-bold mb-1">Next Steps:</div>
+            <ul class="list-disc pl-5 text-sm space-y-1">
+              <li>Respond quickly to buyer inquiries</li>
+              <li>Update your listing if details change</li>
+              <li>Check your profile for messages</li>
+            </ul>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="closeModal()" class="border border-green-600 text-green-600 p-3 rounded-lg font-bold">
+              Done
+            </button>
+            <button onclick="viewListing()" class="bg-green-600 text-white p-3 rounded-lg font-bold">
+              View Listing
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.querySelector('.fixed.inset-0').insertAdjacentHTML('beforeend', successMsg);
+  }, 2000);
+}
+
+function viewListing() {
+  closeModal();
+  alert("In a real implementation, this would show the newly created listing");
+}
+
+function openEducationPage(e) {
+  e.preventDefault();
+  
+  const modal = `
+    <div class="fixed inset-0 bg-white z-50 overflow-y-auto">
+      <!-- Header with back button and title -->
+      <div class="bg-green-600 text-white p-4 flex items-center shadow-md">
+        <button onclick="closeModal()" class="mr-4">
+          <i class="fas fa-arrow-left text-xl"></i>
+        </button>
+        <h2 class="text-xl font-bold">Farmer's Learning Center</h2>
+      </div>
+      
+      <!-- Main Content -->
+      <div class="p-4">
+        <!-- Search Bar -->
+        <div class="relative mb-6">
+          <input type="text" placeholder="Search for farming techniques, crops..." class="w-full p-3 pl-10 border rounded-lg">
+          <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+        </div>
+        
+        <!-- Featured Video Section -->
+        <div class="mb-8">
+          <h3 class="font-bold text-lg mb-3 flex items-center">
+            <i class="fas fa-play-circle text-green-600 mr-2"></i>
+            Featured Video Tutorials
+          </h3>
+          
+          <div class="bg-gray-100 rounded-xl overflow-hidden mb-3">
+            <div class="relative pt-[56.25%]"> <!-- 16:9 aspect ratio -->
+              <iframe id="featuredVideo" class="absolute top-0 left-0 w-full h-full" 
+                src="https://www.youtube.com/embed/VIDEO_ID?rel=0" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen></iframe>
+            </div>
+            <div class="p-3">
+              <h4 class="font-bold">Organic Farming Techniques for Small Farms</h4>
+              <p class="text-sm text-gray-600 mt-1">Learn sustainable practices to increase yield without chemicals</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <div class="cursor-pointer" onclick="playVideo('dQw4w9WgXcQ', 'Soil Health Management')">
+              <div class="relative pt-[56.25%] bg-gray-200 rounded-lg overflow-hidden">
+                <img src="https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" class="absolute top-0 left-0 w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                  <i class="fas fa-play text-white text-2xl"></i>
+                </div>
+              </div>
+              <div class="mt-1">
+                <div class="text-sm font-medium line-clamp-2">Soil Health Management</div>
+                <div class="text-xs text-gray-500">12 min · Krishi Network</div>
+              </div>
+            </div>
+            
+            <div class="cursor-pointer" onclick="playVideo('ANOTHER_VIDEO_ID', 'Drip Irrigation Setup')">
+              <div class="relative pt-[56.25%] bg-gray-200 rounded-lg overflow-hidden">
+                <img src="https://i.ytimg.com/vi/ANOTHER_VIDEO_ID/hqdefault.jpg" class="absolute top-0 left-0 w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                  <i class="fas fa-play text-white text-2xl"></i>
+                </div>
+              </div>
+              <div class="mt-1">
+                <div class="text-sm font-medium line-clamp-2">Drip Irrigation Setup</div>
+                <div class="text-xs text-gray-500">8 min · AgriTech</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Crop Guides Section -->
+        <div class="mb-8">
+          <h3 class="font-bold text-lg mb-3 flex items-center">
+            <i class="fas fa-seedling text-green-600 mr-2"></i>
+            Crop-Specific Guides
+          </h3>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <div onclick="openCropGuide('tomato')" class="farmer-card p-3 flex flex-col items-center cursor-pointer">
+              <img src="https://cdn-icons-png.flaticon.com/512/574/574497.png" class="w-12 h-12 mb-2">
+              <div class="text-center">
+                <div class="font-bold">Tomato</div>
+                <div class="text-xs text-gray-500">Growing Guide</div>
+              </div>
+            </div>
+            
+            <div onclick="openCropGuide('paddy')" class="farmer-card p-3 flex flex-col items-center cursor-pointer">
+              <img src="https://cdn-icons-png.flaticon.com/512/2909/2909761.png" class="w-12 h-12 mb-2">
+              <div class="text-center">
+                <div class="font-bold">Paddy</div>
+                <div class="text-xs text-gray-500">Rice Cultivation</div>
+              </div>
+            </div>
+            
+            <div onclick="openCropGuide('cotton')" class="farmer-card p-3 flex flex-col items-center cursor-pointer">
+              <img src="https://cdn-icons-png.flaticon.com/512/415/415733.png" class="w-12 h-12 mb-2">
+              <div class="text-center">
+                <div class="font-bold">Cotton</div>
+                <div class="text-xs text-gray-500">Farming Techniques</div>
+              </div>
+            </div>
+            
+            <div onclick="openCropGuide('chilli')" class="farmer-card p-3 flex flex-col items-center cursor-pointer">
+              <img src="https://cdn-icons-png.flaticon.com/512/2527/2527326.png" class="w-12 h-12 mb-2">
+              <div class="text-center">
+                <div class="font-bold">Chilli</div>
+                <div class="text-xs text-gray-500">Cultivation Tips</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Articles & News Section -->
+        <div class="mb-8">
+          <h3 class="font-bold text-lg mb-3 flex items-center">
+            <i class="fas fa-newspaper text-green-600 mr-2"></i>
+            Latest Articles
+          </h3>
+          
+          <div class="space-y-4">
+            <div onclick="openArticle('organic-pesticides')" class="farmer-card p-3 cursor-pointer">
+              <div class="font-bold">5 Organic Pesticides You Can Make at Home</div>
+              <div class="text-sm text-gray-600 mt-1 line-clamp-2">Learn how to create effective pest control solutions using neem, garlic, and other natural ingredients...</div>
+              <div class="flex items-center mt-2 text-xs text-gray-500">
+                <i class="fas fa-clock mr-1"></i> 8 min read · 2 days ago
+              </div>
+            </div>
+            
+            <div onclick="openArticle('water-conservation')" class="farmer-card p-3 cursor-pointer">
+              <div class="font-bold">Water Conservation Techniques for Dry Seasons</div>
+              <div class="text-sm text-gray-600 mt-1 line-clamp-2">Discover innovative methods to reduce water usage while maintaining crop yields during drought conditions...</div>
+              <div class="flex items-center mt-2 text-xs text-gray-500">
+                <i class="fas fa-clock mr-1"></i> 6 min read · 1 week ago
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Government Schemes -->
+        <div class="mb-8">
+          <h3 class="font-bold text-lg mb-3 flex items-center">
+            <i class="fas fa-landmark text-green-600 mr-2"></i>
+            Government Schemes
+          </h3>
+          
+          <div class="farmer-card p-3">
+            <div class="font-bold mb-2">PM-KISAN Scheme</div>
+            <div class="text-sm text-gray-600">Income support of ₹6,000/year for small farmers</div>
+            <button onclick="window.open('https://pmkisan.gov.in/', '_blank')" class="text-green-600 text-xs mt-2 flex items-center">
+              Learn More <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Ask Expert Section -->
+        <div class="mb-4 p-4 bg-green-50 rounded-lg">
+          <div class="font-bold mb-2">Need Personalized Advice?</div>
+          <p class="text-sm mb-3">Connect with our agricultural experts for specific questions about your crops.</p>
+          <button onclick="openExpertChat()" class="w-full bg-green-600 text-white p-2 rounded-lg font-bold">
+            <i class="fas fa-user-tie mr-2"></i> Chat with Expert
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modal);
+}
+
+function playVideo(videoId, title) {
+  closeModal();
+  showLoading();
+  
+  setTimeout(() => {
+    hideLoading();
+    
+    const modal = `
+      <div class="fixed inset-0 bg-black z-50">
+        <!-- Video Player Header -->
+        <div class="bg-black text-white p-3 flex items-center justify-between">
+          <button onclick="closeModal()" class="p-2">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <div class="font-bold">${title}</div>
+          <div class="w-8"></div> <!-- Spacer for alignment -->
+        </div>
+        
+        <!-- Video Player -->
+        <div class="relative w-full" style="padding-top: 56.25%"> <!-- 16:9 aspect ratio -->
+          <iframe id="youtubePlayer" class="absolute top-0 left-0 w-full h-full" 
+            src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen></iframe>
+        </div>
+        
+        <!-- Video Details -->
+        <div class="bg-white p-4 overflow-y-auto" style="max-height: 40vh">
+          <h3 class="font-bold text-lg mb-2">${title}</h3>
+          <div class="flex items-center text-sm text-gray-500 mb-3">
+            <span>Krishi Network</span>
+            <span class="mx-2">•</span>
+            <span>12K views</span>
+            <span class="mx-2">•</span>
+            <span>2 weeks ago</span>
+          </div>
+          
+          <div class="text-sm mb-4">
+            <p>This tutorial demonstrates practical techniques for improving soil health through organic amendments, cover cropping, and proper tillage methods. Learn how to:</p>
+            <ul class="list-disc pl-5 mt-2 space-y-1">
+              <li>Test your soil quality at home</li>
+              <li>Create compost from farm waste</li>
+              <li>Use green manure crops effectively</li>
+              <li>Balance soil pH naturally</li>
+            </ul>
+          </div>
+          
+          <div class="flex space-x-3 border-t border-gray-200 pt-3">
+            <button class="flex-1 border border-green-600 text-green-600 p-2 rounded-lg">
+              <i class="fas fa-bookmark mr-2"></i> Save
+            </button>
+            <button class="flex-1 border border-green-600 text-green-600 p-2 rounded-lg">
+              <i class="fas fa-share-alt mr-2"></i> Share
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 500);
+}
+
+function openCropGuide(crop) {
+  closeModal();
+  showLoading();
+  
+  setTimeout(() => {
+    hideLoading();
+    
+    const cropData = {
+      tomato: {
+        name: "Tomato",
+        image: "https://cdn-icons-png.flaticon.com/512/574/574497.png",
+        duration: "60-100 days",
+        season: "Oct-Nov (Rabi), Jun-Jul (Kharif)",
+        description: "Tomatoes are one of the most popular vegetables grown in home gardens. They require warm temperatures and plenty of sunlight.",
+        sections: [
+          {
+            title: "Soil Preparation",
+            content: "Tomatoes grow best in well-drained, loamy soil with a pH between 6.0-6.8. Add organic compost before planting."
+          },
+          {
+            title: "Planting",
+            content: "Start seeds indoors 6-8 weeks before last frost. Transplant seedlings when they have 4-6 true leaves, spacing them 24-36 inches apart."
+          },
+          {
+            title: "Watering",
+            content: "Water deeply 2-3 times per week. Avoid wetting foliage to prevent diseases. Mulch to retain moisture."
+          },
+          {
+            title: "Common Pests",
+            content: "Watch for hornworms, whiteflies, and aphids. Use neem oil or insecticidal soap for organic control."
+          }
+        ]
+      },
+      paddy: {
+        name: "Paddy (Rice)",
+        image: "https://cdn-icons-png.flaticon.com/512/2909/2909761.png",
+        duration: "90-150 days",
+        season: "Jun-Jul (Kharif)",
+        description: "Rice is the staple food for more than half the world's population. It requires standing water during most of its growth period.",
+        sections: [
+          {
+            title: "Land Preparation",
+            content: "Puddle the soil thoroughly and level the field. Maintain 2-3 cm of standing water at transplanting."
+          },
+          {
+            title: "Transplanting",
+            content: "Transplant 20-25 day old seedlings at 2-3 seedlings per hill. Spacing should be 20x10 cm."
+          },
+          {
+            title: "Water Management",
+            content: "Maintain 2-5 cm water depth during vegetative phase. Drain water 10 days before harvest."
+          },
+          {
+            title: "Fertilizer Application",
+            content: "Apply 80-100 kg N, 40-50 kg P2O5, and 40-50 kg K2O per hectare in splits."
+          }
+        ]
+      }
+    };
+    
+    const data = cropData[crop] || cropData.tomato;
+    
+    const modal = `
+      <div class="fixed inset-0 bg-white z-50 overflow-y-auto">
+        <!-- Header -->
+        <div class="bg-green-600 text-white p-4 flex items-center shadow-md">
+          <button onclick="closeModal()" class="mr-4">
+            <i class="fas fa-arrow-left text-xl"></i>
+          </button>
+          <h2 class="text-xl font-bold">${data.name} Cultivation Guide</h2>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="p-4">
+          <div class="flex items-center mb-4">
+            <img src="${data.image}" class="w-16 h-16 mr-4">
+            <div>
+              <div class="font-bold">Growing Duration: ${data.duration}</div>
+              <div class="text-sm">Best Season: ${data.season}</div>
+            </div>
+          </div>
+          
+          <p class="mb-4">${data.description}</p>
+          
+          <div class="space-y-4">
+            ${data.sections.map(section => `
+              <div class="farmer-card p-3">
+                <h3 class="font-bold text-green-700 mb-2">${section.title}</h3>
+                <p class="text-sm">${section.content}</p>
+              </div>
+            `).join('')}
+          </div>
+          
+          <!-- Related Videos -->
+          <h3 class="font-bold text-lg mt-6 mb-3">Video Tutorials</h3>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <div onclick="playVideo('VIDEO_ID_1', '${data.name} Growing Tips')" class="cursor-pointer">
+              <div class="relative pt-[56.25%] bg-gray-200 rounded-lg overflow-hidden">
+                <img src="https://i.ytimg.com/vi/VIDEO_ID_1/hqdefault.jpg" class="absolute top-0 left-0 w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                  <i class="fas fa-play text-white text-2xl"></i>
+                </div>
+              </div>
+              <div class="mt-1 text-sm font-medium">${data.name} Growing Tips</div>
+            </div>
+            
+            <div onclick="playVideo('VIDEO_ID_2', '${data.name} Pest Control')" class="cursor-pointer">
+              <div class="relative pt-[56.25%] bg-gray-200 rounded-lg overflow-hidden">
+                <img src="https://i.ytimg.com/vi/VIDEO_ID_2/hqdefault.jpg" class="absolute top-0 left-0 w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                  <i class="fas fa-play text-white text-2xl"></i>
+                </div>
+              </div>
+              <div class="mt-1 text-sm font-medium">${data.name} Pest Control</div>
+            </div>
+          </div>
+          
+          <!-- Download PDF Button -->
+          <button onclick="downloadGuide('${crop}')" class="w-full border border-green-600 text-green-600 p-3 rounded-lg font-bold">
+            <i class="fas fa-file-pdf mr-2"></i> Download Complete Guide (PDF)
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 500);
+}
+
+function openArticle(articleId) {
+  closeModal();
+  showLoading();
+  
+  setTimeout(() => {
+    hideLoading();
+    
+    const articleData = {
+      'organic-pesticides': {
+        title: "5 Organic Pesticides You Can Make at Home",
+        author: "Dr. Rajesh Kumar, Agricultural Scientist",
+        date: "May 15, 2023",
+        content: `
+          <p class="mb-4">Chemical pesticides can harm beneficial insects and contaminate your produce. Here are five effective organic alternatives you can prepare using common household items:</p>
+          
+          <div class="farmer-card p-3 mb-3">
+            <h4 class="font-bold text-green-700 mb-2">1. Neem Oil Spray</h4>
+            <p><span class="font-medium">Ingredients:</span> 5ml neem oil, 1 liter water, 2ml liquid soap</p>
+            <p><span class="font-medium">Method:</span> Mix neem oil with soap, then add water. Spray on plants weekly.</p>
+            <p><span class="font-medium">Effective Against:</span> Aphids, whiteflies, mealybugs</p>
+          </div>
+          
+          <div class="farmer-card p-3 mb-3">
+            <h4 class="font-bold text-green-700 mb-2">2. Garlic-Chili Spray</h4>
+            <p><span class="font-medium">Ingredients:</span> 10 garlic cloves, 5 hot chilies, 1 liter water</p>
+            <p><span class="font-medium">Method:</span> Blend ingredients, strain, and dilute with water. Spray every 10 days.</p>
+            <p><span class="font-medium">Effective Against:</span> Caterpillars, beetles, borers</p>
+          </div>
+          
+          <p class="mt-4">Always test sprays on a small portion of plants first. Apply in early morning or late evening to prevent leaf burn.</p>
+        `,
+        related: [
+          {title: "Companion Planting Guide", id: "companion-planting"},
+          {title: "Soil Health Improvement", id: "soil-health"}
+        ]
+      },
+      'water-conservation': {
+        title: "Water Conservation Techniques for Dry Seasons",
+        author: "Water Management Board",
+        date: "April 28, 2023",
+        content: `
+          <p class="mb-4">With changing climate patterns, water conservation has become crucial for sustainable farming. These techniques can help reduce water usage by 30-50%:</p>
+          
+          <h4 class="font-bold mt-4 mb-2">Drip Irrigation</h4>
+          <p>Delivers water directly to plant roots with minimal evaporation. Can save up to 60% water compared to flood irrigation.</p>
+          
+          <h4 class="font-bold mt-4 mb-2">Mulching</h4>
+          <p>Use organic mulch (straw, leaves) or plastic mulch to reduce evaporation. Maintains soil moisture and temperature.</p>
+          
+          <h4 class="font-bold mt-4 mb-2">Rainwater Harvesting</h4>
+          <p>Collect rainwater in ponds or tanks during monsoon for use in dry periods. Even small systems can provide critical backup.</p>
+          
+          <h4 class="font-bold mt-4 mb-2">Drought-Resistant Varieties</h4>
+          <p>Choose crop varieties bred for drought tolerance. Many modern varieties require less water without sacrificing yield.</p>
+        `,
+        related: [
+          {title: "Drip Irrigation Setup Guide", id: "drip-irrigation"},
+          {title: "Organic Mulching Techniques", id: "mulching"}
+        ]
+      }
+    };
+    
+    const article = articleData[articleId] || articleData['organic-pesticides'];
+    
+    const modal = `
+      <div class="fixed inset-0 bg-white z-50 overflow-y-auto">
+        <!-- Header -->
+        <div class="bg-green-600 text-white p-4 flex items-center shadow-md">
+          <button onclick="closeModal()" class="mr-4">
+            <i class="fas fa-arrow-left text-xl"></i>
+          </button>
+          <h2 class="text-xl font-bold">${article.title}</h2>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="p-4">
+          <div class="flex items-center text-sm text-gray-500 mb-4">
+            <span>By ${article.author}</span>
+            <span class="mx-2">•</span>
+            <span>${article.date}</span>
+          </div>
+          
+          <div class="article-content">
+            ${article.content}
+          </div>
+          
+          <!-- Related Articles -->
+          <h3 class="font-bold text-lg mt-8 mb-3">Related Articles</h3>
+          <div class="space-y-3">
+            ${article.related.map(item => `
+              <div onclick="openArticle('${item.id}')" class="farmer-card p-3 cursor-pointer">
+                <div class="font-bold">${item.title}</div>
+                <div class="text-sm text-gray-600 mt-1 flex items-center">
+                  <i class="fas fa-clock mr-1"></i> 5 min read
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          
+          <!-- Save/Share Buttons -->
+          <div class="flex space-x-3 mt-6">
+            <button class="flex-1 border border-green-600 text-green-600 p-2 rounded-lg">
+              <i class="fas fa-bookmark mr-2"></i> Save
+            </button>
+            <button class="flex-1 border border-green-600 text-green-600 p-2 rounded-lg">
+              <i class="fas fa-share-alt mr-2"></i> Share
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 500);
+}
+
+function openExpertChat() {
+  closeModal();
+  showLoading();
+  
+  setTimeout(() => {
+    hideLoading();
+    
+    const modal = `
+      <div class="fixed inset-0 bg-white z-50">
+        <!-- Header -->
+        <div class="bg-green-600 text-white p-4 flex items-center shadow-md">
+          <button onclick="closeModal()" class="mr-4">
+            <i class="fas fa-arrow-left text-xl"></i>
+          </button>
+          <h2 class="text-xl font-bold">Chat with Expert</h2>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="p-4">
+          <div class="text-center py-8">
+            <i class="fas fa-user-tie text-5xl text-green-500 mb-3"></i>
+            <h3 class="font-bold text-lg mb-2">Connect with Agricultural Experts</h3>
+            <p class="text-gray-600 mb-6">Get personalized advice for your specific farming challenges</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <div class="farmer-card p-3 text-center">
+                <div class="bg-blue-100 text-blue-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <i class="fas fa-video"></i>
+                </div>
+                <div class="font-bold">Video Call</div>
+                <div class="text-xs text-gray-500">Face-to-face consultation</div>
+              </div>
+              
+              <div class="farmer-card p-3 text-center">
+                <div class="bg-green-100 text-green-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <i class="fas fa-comments"></i>
+                </div>
+                <div class="font-bold">Chat</div>
+                <div class="text-xs text-gray-500">Text-based questions</div>
+              </div>
+            </div>
+            
+            <button onclick="startExpertChat()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+              Start Consultation (₹99 for 15 min)
+            </button>
+            
+            <div class="text-xs text-gray-500 mt-4">Free for registered farmers on first 2 queries</div>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modal);
+  }, 500);
+}
+
+function downloadGuide(crop) {
+  showLoading();
+  setTimeout(() => {
+    hideLoading();
+    alert(`${crop} cultivation guide PDF would download in a real implementation`);
+  }, 1000);
+}
+
+function startExpertChat() {
+  alert("In a real implementation, this would connect to a live expert chat system");
+}
+
+// Additional supporting functions for profile actions
+function editProfile() {
+  alert("Edit profile screen would open here in a full implementation");
+}
+
+function openFarmDetails() {
+  alert("Farm details screen would open here showing land holdings and equipment");
+}
+
+function openSettings() {
+  alert("App settings screen would open here for notifications, preferences etc.");
+}
+
+    function findAgriProducts(product) {
+      closeModal();
+      alert(`Searching for ${product} sellers near ${userData.location}...`);
+      // In real app, would show a list of sellers
+    }
+  </script>
+</body>
+</html>
