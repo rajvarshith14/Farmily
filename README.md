@@ -7,7 +7,7 @@ The **Sell Page** is the heart of Farmily’s digital mandi. It allows verified 
 This creates a **transparent, farmer-first marketplace** where buyers trust what they see, and farmers get a fair share of income.
 
 ---
-
+ 
 ## ⚙️ Key Features
 
 ### ✅ 1. Verified Farmer Login
