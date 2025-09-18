@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Farmily - Sell Your Produce</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+    .farmer-card {
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4efe9 100%);
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+    .farmer-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+    }
+    .price-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 5px;
+      background: #d3d3d3;
+      outline: none;
+    }
+    .price-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #38a169;
+      cursor: pointer;
+    }
+    .price-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #38a169;
+      cursor: pointer;
+    }
+    .login-container {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c8e6c9 100%);
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <!-- Login/Registration Section -->
+  <div id="loginSection" class="login-container flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+      <div class="text-center mb-6">
+        <h1 class="text-3xl font-bold text-green-600">Farmily</h1>
+        <p class="text-gray-600">Farmer Verification Portal</p>
+      </div>
+      
+      <div id="loginForm">
+        <h2 class="text-xl font-bold mb-4 text-center">Farmer Login</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Farmer ID / License Number</label>
+            <input type="text" id="farmerId" class="w-full p-3 border rounded-lg" placeholder="e.g., FARM123456">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" id="password" class="w-full p-3 border rounded-lg" placeholder="Enter your password">
+          </div>
+          <button onclick="login()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+            Login
+          </button>
+          <p class="text-center text-sm text-gray-600">
+            Don't have an account? 
+            <a href="#" onclick="showRegisterForm()" class="text-green-600 font-medium">Register here</a>
+          </p>
+        </div>
+      </div>
+      
+      <div id="registerForm" class="hidden">
+        <h2 class="text-xl font-bold mb-4 text-center">Farmer Registration</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <input type="text" id="regName" class="w-full p-3 border rounded-lg" placeholder="Enter your full name">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Government Farmer ID</label>
+            <input type="text" id="regFarmerId" class="w-full p-3 border rounded-lg" placeholder="e.g., FARM123456">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+            <input type="tel" id="regPhone" class="w-full p-3 border rounded-lg" placeholder="Enter your phone number">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input type="password" id="regPassword" class="w-full p-3 border rounded-lg" placeholder="Create a password">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <input type="password" id="regConfirmPassword" class="w-full p-3 border rounded-lg" placeholder="Confirm your password">
+          </div>
+          <button onclick="register()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold">
+            Register
+          </button>
+          <p class="text-center text-sm text-gray-600">
+            Already have an account? 
+            <a href="#" onclick="showLoginForm()" class="text-green-600 font-medium">Login here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sell Page (Visible after login) -->
+  <div id="sellPage" class="hidden">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-green-700 to-green-600 p-4 flex items-center justify-between shadow-md">
+      <div class="flex items-center space-x-3">
+        <div class="relative">
+          <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Farmer" class="w-12 h-12 rounded-full border-2 border-white">
+          <span class="absolute bottom-0 right-0 bg-yellow-400 text-xs font-bold px-1 rounded-full">PRO</span>
+        </div>
+        <div class="text-white">
+          <div class="font-bold" id="userName">Farmer Name</div>
+          <div class="text-xs flex items-center">
+            <i class="fas fa-location-dot mr-1"></i> <span id="userLocation">Location</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-white text-3xl font-extrabold" style="font-family: 'Pacifico', cursive;">Farmily</div>
+
+      <button onclick="logout()" class="bg-white text-green-700 px-3 py-1 rounded-lg text-sm font-bold">
+        Logout
+      </button>
+    </header>
+
+    <!-- Main Content -->
+    <div class="p-4 max-w-2xl mx-auto">
+      <h1 class="text-2xl font-bold mb-6 text-center">Sell Your Produce</h1>
+      
+      <!-- New Listing Form -->
+      <div class="farmer-card p-5 mb-6">
+        <h2 class="text-xl font-bold mb-4">Create New Listing</h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Select Commodity</label>
+            <select id="commoditySelect" onchange="fetchMandiPrices()" class="w-full p-3 border rounded-lg">
+              <option value="">Select a commodity</option>
+              <option value="rice">Rice</option>
+              <option value="wheat">Wheat</option>
+              <option value="tomato">Tomato</option>
+              <option value="potato">Potato</option>
+              <option value="onion">Onion</option>
+              <option value="cashew">Cashew Nuts</option>
+              <option value="cotton">Cotton</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity (kg)</label>
+            <input type="number" id="quantity" min="1" value="10" class="w-full p-3 border rounded-lg">
+          </div>
+          
+          <div id="priceSection" class="hidden">
+            <div class="bg-blue-50 p-3 rounded-lg mb-3">
+              <div class="font-bold">Current Mandi Price Range</div>
+              <div id="priceRange" class="text-blue-700"></div>
+              <div class="text-xs text-gray-600">You must set your price within this range</div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Your Price (₹ per kg)</label>
+              <input type="number" id="priceInput" class="w-full p-3 border rounded-lg mb-2" oninput="validatePrice()">
+              <input type="range" id="priceSlider" min="0" max="100" value="50" class="price-slider" oninput="updatePriceInput()">
+            </div>
+            
+            <div class="mt-2">
+              <div class="font-bold">Total Value: ₹<span id="totalValue">0</span></div>
+            </div>
+          </div>
+          
+          <button id="submitListingBtn" onclick="submitListing()" class="w-full bg-green-600 text-white p-3 rounded-lg font-bold mt-4" disabled>
+            List for Sale
+          </button>
+        </div>
+      </div>
+      
+      <!-- Active Listings -->
+      <div>
+        <h2 class="text-xl font-bold mb-4">Your Active Listings</h2>
+        
+        <div id="listingsContainer" class="space-y-4">
+          <!-- Listings will be loaded here -->
+          <div class="text-center py-5 text-gray-500" id="noListingsMessage">
+            You don't have any active listings yet.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Current user data
+    let currentUser = null;
+    let mandiPrices = {};
+    let userListings = [];
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      checkLoginStatus();
+      setupEventListeners();
+    });
+
+    function setupEventListeners() {
+      // Update total value when quantity or price changes
+      document.getElementById('quantity').addEventListener('input', updateTotalValue);
+      document.getElementById('priceInput').addEventListener('input', updateTotalValue);
+    }
+
+    function showRegisterForm() {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('registerForm').classList.remove('hidden');
+    }
+
+    function showLoginForm() {
+      document.getElementById('registerForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+    }
+
+    function checkLoginStatus() {
+      // Check if user is logged in (in a real app, this would check localStorage or cookies)
+      const savedUser = localStorage.getItem('farmilyUser');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        showSellPage();
+        loadUserListings();
+      }
+    }
+
+    function login() {
+      const farmerId = document.getElementById('farmerId').value;
+      const password = document.getElementById('password').value;
+      
+      if (!farmerId || !password) {
+        alert('Please enter your Farmer ID and password');
+        return;
+      }
+      
+      // In a real app, this would call your backend API
+      // For demo purposes, we'll simulate a login
+      showLoading();
+      
+      setTimeout(() => {
+        // Simulate API call to login
+        const users = JSON.parse(localStorage.getItem('farmilyUsers') || '[]');
+        const user = users.find(u => u.farmerId === farmerId && u.password === password);
+        
+        if (user) {
+          currentUser = user;
+          localStorage.setItem('farmilyUser', JSON.stringify(user));
+          showSellPage();
+          loadUserListings();
+          hideLoading();
+        } else {
+          hideLoading();
+          alert('Invalid Farmer ID or password');
+        }
+      }, 1000);
+    }
+
+    function register() {
+      const name = document.getElementById('regName').value;
+      const farmerId = document.getElementById('regFarmerId').value;
+      const phone = document.getElementById('regPhone').value;
+      const password = document.getElementById('regPassword').value;
+      const confirmPassword = document.getElementById('regConfirmPassword').value;
+      
+      if (!name || !farmerId || !phone || !password) {
+        alert('Please fill in all fields');
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        alert('Passwords do not match');
+        return;
+      }
+      
+      // In a real app, this would call your backend API
+      showLoading();
+      
+      setTimeout(() => {
+        // Save user to "database" (localStorage for demo)
+        const users = JSON.parse(localStorage.getItem('farmilyUsers') || '[]');
+        
+        // Check if user already exists
+        if (users.some(u => u.farmerId === farmerId)) {
+          hideLoading();
+          alert('A user with this Farmer ID already exists');
+          return;
+        }
+        
+        const newUser = {
+          id: Date.now().toString(),
+          name,
+          farmerId,
+          phone,
+          password, // In a real app, this would be hashed
+          location: 'Nalgonda, Telangana' // Default location for demo
+        };
+        
+        users.push(newUser);
+        localStorage.setItem('farmilyUsers', JSON.stringify(users));
+        
+        // Auto login after registration
+        currentUser = newUser;
+        localStorage.setItem('farmilyUser', JSON.stringify(newUser));
+        showSellPage();
+        hideLoading();
+        
+        alert('Registration successful! You are now logged in.');
+      }, 1000);
+    }
+
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem('farmilyUser');
+      document.getElementById('sellPage').classList.add('hidden');
+      document.getElementById('loginSection').classList.remove('hidden');
+    }
+
+    function showSellPage() {
+      document.getElementById('loginSection').classList.add('hidden');
+      document.getElementById('sellPage').classList.remove('hidden');
+      
+      // Update user info
+      document.getElementById('userName').textContent = currentUser.name;
+      document.getElementById('userLocation').textContent = currentUser.location;
+    }
+
+    function fetchMandiPrices() {
+      const commodity = document.getElementById('commoditySelect').value;
+      
+      if (!commodity) {
+        document.getElementById('priceSection').classList.add('hidden');
+        document.getElementById('submitListingBtn').disabled = true;
+        return;
+      }
+      
+      showLoading();
+      
+      // In a real app, this would call your backend API which fetches from data.gov.in
+      // For demo, we'll use mock data
+      setTimeout(() => {
+        // Mock mandi prices (in a real app, this would come from an API)
+        const mockPrices = {
+          rice: { min: 25, max: 35, unit: 'kg' },
+          wheat: { min: 20, max: 28, unit: 'kg' },
+          tomato: { min: 15, max: 40, unit: 'kg' },
+          potato: { min: 12, max: 20, unit: 'kg' },
+          onion: { min: 18, max: 30, unit: 'kg' },
+          cashew: { min: 500, max: 800, unit: 'kg' },
+          cotton: { min: 60, max: 90, unit: 'kg' }
+        };
+        
+        const priceData = mockPrices[commodity] || { min: 10, max: 50, unit: 'kg' };
+        mandiPrices = priceData;
+        
+        // Update UI with price range
+        document.getElementById('priceRange').textContent = 
+          `₹${priceData.min} - ₹${priceData.max} per ${priceData.unit}`;
+        
+        // Set up price input and slider
+        document.getElementById('priceInput').min = priceData.min;
+        document.getElementById('priceInput').max = priceData.max;
+        document.getElementById('priceInput').value = priceData.min;
+        
+        document.getElementById('priceSlider').min = priceData.min;
+        document.getElementById('priceSlider').max = priceData.max;
+        document.getElementById('priceSlider').value = priceData.min;
+        
+        // Show price section
+        document.getElementById('priceSection').classList.remove('hidden');
+        
+        // Enable submit button
+        document.getElementById('submitListingBtn').disabled = false;
+        
+        updateTotalValue();
+        hideLoading();
+      }, 800);
+    }
+
+    function updatePriceInput() {
+      const sliderValue = document.getElementById('priceSlider').value;
+      document.getElementById('priceInput').value = sliderValue;
+      updateTotalValue();
+    }
+
+    function validatePrice() {
+      const priceInput = document.getElementById('priceInput');
+      let price = parseFloat(priceInput.value);
+      
+      if (isNaN(price)) {
+        priceInput.value = mandiPrices.min;
+        price = mandiPrices.min;
+      }
+      
+      if (price < mandiPrices.min) {
+        priceInput.value = mandiPrices.min;
+        price = mandiPrices.min;
+        alert(`Price cannot be lower than ₹${mandiPrices.min}`);
+      } else if (price > mandiPrices.max) {
+        priceInput.value = mandiPrices.max;
+        price = mandiPrices.max;
+        alert(`Price cannot be higher than ₹${mandiPrices.max}`);
+      }
+      
+      // Sync with slider
+      document.getElementById('priceSlider').value = price;
+      updateTotalValue();
+    }
+
+    function updateTotalValue() {
+      const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+      const price = parseFloat(document.getElementById('priceInput').value) || 0;
+      const total = quantity * price;
+      
+      document.getElementById('totalValue').textContent = total.toFixed(2);
+    }
+
+    function submitListing() {
+      const commodity = document.getElementById('commoditySelect').value;
+      const quantity = parseFloat(document.getElementById('quantity').value);
+      const price = parseFloat(document.getElementById('priceInput').value);
+      
+      if (!commodity || !quantity || !price) {
+        alert('Please fill in all fields');
+        return;
+      }
+      
+      // Validate price is within range
+      if (price < mandiPrices.min || price > mandiPrices.max) {
+        alert(`Price must be between ₹${mandiPrices.min} and ₹${mandiPrices.max}`);
+        return;
+      }
+      
+      showLoading();
+      
+      // In a real app, this would call your backend API
+      setTimeout(() => {
+        // Create new listing
+        const newListing = {
+          id: Date.now().toString(),
+          farmerId: currentUser.farmerId,
+          commodity,
+          quantity,
+          price,
+          totalValue: quantity * price,
+          date: new Date().toISOString(),
+          status: 'active'
+        };
+        
+        // Save to "database" (localStorage for demo)
+        const listings = JSON.parse(localStorage.getItem('farmilyListings') || '[]');
+        listings.push(newListing);
+        localStorage.setItem('farmilyListings', JSON.stringify(listings));
+        
+        // Refresh listings
+        loadUserListings();
+        
+        // Reset form
+        document.getElementById('commoditySelect').value = '';
+        document.getElementById('quantity').value = '10';
+        document.getElementById('priceSection').classList.add('hidden');
+        document.getElementById('submitListingBtn').disabled = true;
+        
+        hideLoading();
+        alert('Your produce has been listed successfully!');
+      }, 800);
+    }
+
+    function loadUserListings() {
+      if (!currentUser) return;
+      
+      // In a real app, this would call your backend API
+      const allListings = JSON.parse(localStorage.getItem('farmilyListings') || '[]');
+      userListings = allListings.filter(listing => 
+        listing.farmerId === currentUser.farmerId && listing.status === 'active'
+      );
+      
+      const listingsContainer = document.getElementById('listingsContainer');
+      const noListingsMessage = document.getElementById('noListingsMessage');
+      
+      if (userListings.length === 0) {
+        listingsContainer.innerHTML = '';
+        noListingsMessage.classList.remove('hidden');
+        return;
+      }
+      
+      noListingsMessage.classList.add('hidden');
+      
+      // Display listings
+      listingsContainer.innerHTML = userListings.map(listing => `
+        <div class="farmer-card p-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="font-bold text-lg capitalize">${listing.commodity}</h3>
+              <p class="text-gray-600">${listing.quantity} kg at ₹${listing.price}/kg</p>
+              <p class="text-green-600 font-bold">Total: ₹${listing.totalValue.toFixed(2)}</p>
+              <p class="text-xs text-gray-500">Listed on: ${new Date(listing.date).toLocaleDateString()}</p>
+            </div>
+            <div class="flex space-x-2">
+              <button onclick="editListing('${listing.id}')" class="bg-blue-100 text-blue-600 p-2 rounded-lg">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button onclick="deleteListing('${listing.id}')" class="bg-red-100 text-red-600 p-2 rounded-lg">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function editListing(listingId) {
+      const listing = userListings.find(l => l.id === listingId);
+      if (!listing) return;
+      
+      // Prefill the form with listing data
+      document.getElementById('commoditySelect').value = listing.commodity;
+      
+      // Fetch current prices for this commodity
+      fetchMandiPrices();
+      
+      // Set quantity and price after a short delay (to allow price fetch to complete)
+      setTimeout(() => {
+        document.getElementById('quantity').value = listing.quantity;
+        document.getElementById('priceInput').value = listing.price;
+        document.getElementById('priceSlider').value = listing.price;
+        updateTotalValue();
+        
+        // Scroll to form
+        document.getElementById('commoditySelect').scrollIntoView({ behavior: 'smooth' });
+        
+        // Delete the old listing
+        deleteListing(listingId, false);
+      }, 1000);
+    }
+
+    function deleteListing(listingId, confirm = true) {
+      if (confirm && !window.confirm('Are you sure you want to delete this listing?')) {
+        return;
+      }
+      
+      // In a real app, this would call your backend API
+      const allListings = JSON.parse(localStorage.getItem('farmilyListings') || '[]');
+      const updatedListings = allListings.map(listing => {
+        if (listing.id === listingId) {
+          return { ...listing, status: 'deleted' };
+        }
+        return listing;
+      });
+      
+      localStorage.setItem('farmilyListings', JSON.stringify(updatedListings));
+      loadUserListings();
+    }
+
+    function showLoading() {
+      const loading = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div class="bg-white p-5 rounded-lg flex items-center">
+            <div class="spinner mr-3"></div>
+            <div>Loading...</div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', loading);
+    }
+
+    function hideLoading() {
+      const loadingElement = document.querySelector('.fixed.inset-0.z-50.flex.items-center.justify-center');
+      if (loadingElement) {
+        loadingElement.remove();
+      }
+    }
+  </script>
+</body>
+</html>
